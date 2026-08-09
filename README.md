@@ -2,8 +2,8 @@
 
 Igris is the Intelligent Graph-based Reverse-engineering and Inspection System.
 It is intended to become an explainable malware-analysis and threat-intelligence
-platform. The repository currently includes Phase 0 foundation work and Phase 1
-file intelligence.
+platform. The repository currently includes Phase 0 foundation work, Phase 1
+file intelligence, and Phase 2 static-analysis evidence extraction.
 
 Implemented foundation:
 
@@ -16,6 +16,10 @@ Implemented foundation:
 - Content-based file identification for PE, ELF, text, empty, and unknown files.
 - SHA-256, SHA-1, MD5, whole-file entropy, and foundational PE/ELF metadata.
 - PostgreSQL metadata repository support plus local JSON/in-memory development options.
+- Static string extraction and categorization.
+- API capability taxonomy for imports and API-like string references.
+- Section, resource, overlay, and conservative packing indicators.
+- Versioned static feature vector for future ML consumers.
 
 No malware detector, sandbox, dynamic execution, similarity analysis, or ML feature
 is implemented in this phase.
@@ -74,6 +78,14 @@ Invoke-WebRequest -UseBasicParsing `
   -Uri http://127.0.0.1:8000/api/v1/samples/<sample_id>/file-info
 ```
 
+Run static analysis:
+
+```powershell
+Invoke-WebRequest -UseBasicParsing `
+  -Uri http://127.0.0.1:8000/api/v1/samples/<sample_id>/static-analysis `
+  -Method Post
+```
+
 Install and run frontend:
 
 ```powershell
@@ -100,5 +112,6 @@ Treat every submitted file, filename, archive, metadata field, and derived artif
 Development and application environments must never execute arbitrary uploaded binaries.
 Future dynamic behavior analysis belongs only in isolated, disposable environments with strict containment.
 
-See [SECURITY.md](SECURITY.md), [docs/lab-design.md](docs/lab-design.md), and
-[docs/analysis/file-intelligence.md](docs/analysis/file-intelligence.md).
+See [SECURITY.md](SECURITY.md), [docs/lab-design.md](docs/lab-design.md),
+[docs/analysis/file-intelligence.md](docs/analysis/file-intelligence.md), and
+[docs/analysis/static-analysis.md](docs/analysis/static-analysis.md).

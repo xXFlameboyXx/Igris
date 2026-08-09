@@ -23,6 +23,9 @@ The backend serves:
 - `POST /api/v1/samples`
 - `GET /api/v1/samples/{sample_id}`
 - `GET /api/v1/samples/{sample_id}/file-info`
+- `POST /api/v1/samples/{sample_id}/static-analysis`
+- `GET /api/v1/samples/{sample_id}/static-analysis`
+- `GET /api/v1/samples/{sample_id}/indicators`
 - `GET /docs` when `IGRIS_ENABLE_DOCS=true`
 
 ## Frontend Setup

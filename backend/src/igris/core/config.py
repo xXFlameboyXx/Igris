@@ -32,6 +32,9 @@ class Settings(BaseSettings):
     sample_temp_dir: str = "data/tmp"
     max_upload_bytes: int = Field(default=52_428_800, ge=1, le=1_073_741_824)
     analysis_timeout_seconds: int = Field(default=10, ge=1, le=300)
+    static_min_string_length: int = Field(default=4, ge=3, le=64)
+    static_max_strings: int = Field(default=5_000, ge=1, le=100_000)
+    static_high_entropy_threshold: float = Field(default=7.2, ge=0.0, le=8.0)
     request_id_header: str = "X-Request-ID"
     trusted_proxy_headers: bool = False
 

@@ -138,3 +138,85 @@ def minimal_elf64_fixture() -> bytes:
 
 def malformed_elf_fixture() -> bytes:
     return b"\x7fELF\x02\x01"
+
+
+def static_suspicious_pe_fixture() -> bytes:
+    data = bytearray(0x900)
+    data[0:2] = b"MZ"
+    data[0x3C:0x40] = pack("<I", 0x80)
+    data[0x80:0x84] = b"PE\0\0"
+    coff = 0x84
+    data[coff : coff + 20] = pack(
+        "<HHIIIHH",
+        0x014C,
+        1,
+        1_700_000_000,
+        0,
+        0,
+        224,
+        0x010F,
+    )
+    optional = coff + 20
+    data[optional : optional + 96] = pack(
+        "<HBBIIIIIIIIIHHHHHHIIIIHHIIIIII",
+        0x10B,
+        14,
+        0,
+        0x600,
+        0,
+        0,
+        0x1000,
+        0x1000,
+        0,
+        0x400000,
+        0x1000,
+        0x200,
+        6,
+        0,
+        0,
+        0,
+        6,
+        0,
+        0,
+        0x3000,
+        0x200,
+        0,
+        3,
+        0,
+        0x100000,
+        0x1000,
+        0x100000,
+        0x1000,
+        0,
+        16,
+    )
+    data[optional + 96 + 16 : optional + 96 + 24] = pack("<II", 0x1500, 0x40)
+    section = optional + 224
+    data[section : section + 40] = pack(
+        "<8sIIIIIIHHI",
+        b".packed\0",
+        0x800,
+        0x1000,
+        0x600,
+        0x200,
+        0,
+        0,
+        0,
+        0,
+        0xE0000020,
+    )
+    for index in range(0x600):
+        data[0x200 + index] = (index * 73 + 19) % 256
+    strings = (
+        b"http://example.test/path\0"
+        b"192.0.2.15\0"
+        b"HKCU\\Software\\IgrisTest\0"
+        b"powershell.exe\0"
+        b"VirtualAlloc\0"
+        b"CreateRemoteThread\0"
+        b"benign test credential keyword\0"
+    )
+    data[0x620 : 0x620 + len(strings)] = strings
+    data[0x700:0x740] = bytes(range(64))
+    data[0x800:0x900] = b"OVERLAY" * 36 + b"END!"
+    return bytes(data)

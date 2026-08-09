@@ -6,6 +6,8 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from igris.schemas.static_analysis import StaticAnalysisResult
+
 
 class AnalysisStatus(StrEnum):
     """Lifecycle states for Phase 1 file-intelligence analysis."""
@@ -228,6 +230,7 @@ class Sample(BaseModel):
     size_bytes: int
     status: AnalysisStatus
     file_metadata: FileMetadata | None = None
+    static_analysis: StaticAnalysisResult | None = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
