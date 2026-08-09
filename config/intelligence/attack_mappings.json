@@ -1,0 +1,77 @@
+{
+  "mapping_version": "attack-mapping/v1",
+  "attack_version": "ATT&CK Enterprise v16.1",
+  "rules": [
+    {
+      "mapping_id": "cap-persistence-registry-run-key",
+      "capability": "Persistence",
+      "label": "POSSIBLE",
+      "capability_confidence": 0.66,
+      "technique_id": "T1547.001",
+      "technique_name": "Registry Run Keys / Startup Folder",
+      "source_engine": "static_analysis",
+      "required_evidence_types": ["INTERESTING_STRING"],
+      "required_string_categories": ["registry_path"],
+      "keyword_any": ["run", "startup", "currentversion", "hkcu", "hklm"],
+      "explanation": "Registry-path strings can support a possible persistence hypothesis when the path resembles startup-related locations."
+    },
+    {
+      "mapping_id": "cap-execution-command-interpreter",
+      "capability": "Execution",
+      "label": "POSSIBLE",
+      "capability_confidence": 0.58,
+      "technique_id": "T1059",
+      "technique_name": "Command and Scripting Interpreter",
+      "source_engine": "static_analysis",
+      "required_string_categories": ["command_interpreter"],
+      "explanation": "Command/interpreter strings support a possible execution capability but are common in benign administration tools."
+    },
+    {
+      "mapping_id": "cap-defense-evasion-packing",
+      "capability": "Defense Evasion",
+      "label": "POSSIBLE",
+      "capability_confidence": 0.62,
+      "technique_id": "T1027",
+      "technique_name": "Obfuscated Files or Information",
+      "source_engine": "static_analysis",
+      "required_evidence_types": ["POSSIBLE_PACKING_INDICATOR"],
+      "minimum_evidence_count": 2,
+      "explanation": "Multiple conservative packing indicators can support a possible obfuscation/evasion hypothesis without proving packing."
+    },
+    {
+      "mapping_id": "cap-process-injection-api-correlation",
+      "capability": "Defense Evasion",
+      "label": "INFERRED",
+      "capability_confidence": 0.7,
+      "technique_id": "T1055",
+      "technique_name": "Process Injection",
+      "source_engine": "reverse_analysis",
+      "required_reverse_evidence_types": ["EXECUTABLE_MEMORY_OPERATION", "STRING_API_CORRELATION"],
+      "explanation": "Function-level correlation of executable memory APIs with relevant strings supports an inferred process-manipulation hypothesis."
+    },
+    {
+      "mapping_id": "cap-command-control-network",
+      "capability": "Command and Control",
+      "label": "POSSIBLE",
+      "capability_confidence": 0.6,
+      "technique_id": "T1071",
+      "technique_name": "Application Layer Protocol",
+      "source_engine": "static_analysis",
+      "required_api_categories": ["networking"],
+      "required_string_categories_any": ["url", "domain", "ipv4", "ipv6"],
+      "explanation": "Networking capability plus network indicators supports possible command-and-control relevance, but benign updaters may look similar."
+    },
+    {
+      "mapping_id": "cap-credential-access-keyword",
+      "capability": "Credential Access",
+      "label": "POSSIBLE",
+      "capability_confidence": 0.52,
+      "technique_id": "T1555",
+      "technique_name": "Credentials from Password Stores",
+      "source_engine": "static_analysis",
+      "required_string_categories": ["suspicious_keyword"],
+      "keyword_any": ["credential", "password", "token"],
+      "explanation": "Credential-related strings alone are weak evidence and only support a possible credential-access hypothesis."
+    }
+  ]
+}
