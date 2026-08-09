@@ -6,6 +6,8 @@ from fastapi import APIRouter, File, Request, UploadFile, status
 
 from igris.analysis.file_intelligence.service import FileIntelligenceService
 from igris.analysis.static_analysis.service import StaticAnalysisService
+from igris.detection.service import DetectionService
+from igris.schemas.detection import DetectionResponse
 from igris.schemas.file_intelligence import FileInfoResponse, SampleCreateResponse, SampleResponse
 from igris.schemas.static_analysis import IndicatorsResponse, StaticAnalysisResponse
 
@@ -64,6 +66,22 @@ async def get_indicators(request: Request, sample_id: str) -> IndicatorsResponse
     return IndicatorsResponse(sample_id=sample_id, indicators=analysis.evidence)
 
 
+@router.post("/{sample_id}/detect", response_model=DetectionResponse)
+async def create_detection(request: Request, sample_id: str) -> DetectionResponse:
+    """Run evidence-based detection or return the existing result."""
+
+    service = _detection_service_from_request(request)
+    return service.run(sample_id)
+
+
+@router.get("/{sample_id}/detection", response_model=DetectionResponse)
+async def get_detection(request: Request, sample_id: str) -> DetectionResponse:
+    """Return a previously generated detection result."""
+
+    service = _detection_service_from_request(request)
+    return service.get(sample_id)
+
+
 def _service_from_request(request: Request) -> FileIntelligenceService:
     return FileIntelligenceService(
         settings=request.app.state.settings,
@@ -74,6 +92,14 @@ def _service_from_request(request: Request) -> FileIntelligenceService:
 
 def _static_service_from_request(request: Request) -> StaticAnalysisService:
     return StaticAnalysisService(
+        settings=request.app.state.settings,
+        sample_storage=request.app.state.sample_storage,
+        metadata_repository=request.app.state.metadata_repository,
+    )
+
+
+def _detection_service_from_request(request: Request) -> DetectionService:
+    return DetectionService(
         settings=request.app.state.settings,
         sample_storage=request.app.state.sample_storage,
         metadata_repository=request.app.state.metadata_repository,

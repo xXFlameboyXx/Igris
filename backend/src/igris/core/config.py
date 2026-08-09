@@ -35,6 +35,8 @@ class Settings(BaseSettings):
     static_min_string_length: int = Field(default=4, ge=3, le=64)
     static_max_strings: int = Field(default=5_000, ge=1, le=100_000)
     static_high_entropy_threshold: float = Field(default=7.2, ge=0.0, le=8.0)
+    detection_rules_path: str = "config/rules/static_rules.json"
+    detection_engine_version: str = "heuristic-detection/v1"
     request_id_header: str = "X-Request-ID"
     trusted_proxy_headers: bool = False
 

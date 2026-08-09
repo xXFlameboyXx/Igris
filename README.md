@@ -3,7 +3,8 @@
 Igris is the Intelligent Graph-based Reverse-engineering and Inspection System.
 It is intended to become an explainable malware-analysis and threat-intelligence
 platform. The repository currently includes Phase 0 foundation work, Phase 1
-file intelligence, and Phase 2 static-analysis evidence extraction.
+file intelligence, Phase 2 static-analysis evidence extraction, and Phase 3
+transparent heuristic detection.
 
 Implemented foundation:
 
@@ -20,9 +21,12 @@ Implemented foundation:
 - API capability taxonomy for imports and API-like string references.
 - Section, resource, overlay, and conservative packing indicators.
 - Versioned static feature vector for future ML consumers.
+- Evidence-based detection results with declarative rules, deterministic
+  heuristics, and transparent score breakdowns.
 
-No malware detector, sandbox, dynamic execution, similarity analysis, or ML feature
-is implemented in this phase.
+No sandbox, dynamic execution, similarity analysis, or ML feature is implemented
+in this phase. Detection is heuristic and explainable; it is not a final
+malware verdict.
 
 ## Repository Layout
 
@@ -86,6 +90,14 @@ Invoke-WebRequest -UseBasicParsing `
   -Method Post
 ```
 
+Run detection:
+
+```powershell
+Invoke-WebRequest -UseBasicParsing `
+  -Uri http://127.0.0.1:8000/api/v1/samples/<sample_id>/detect `
+  -Method Post
+```
+
 Install and run frontend:
 
 ```powershell
@@ -114,4 +126,5 @@ Future dynamic behavior analysis belongs only in isolated, disposable environmen
 
 See [SECURITY.md](SECURITY.md), [docs/lab-design.md](docs/lab-design.md),
 [docs/analysis/file-intelligence.md](docs/analysis/file-intelligence.md), and
-[docs/analysis/static-analysis.md](docs/analysis/static-analysis.md).
+[docs/analysis/static-analysis.md](docs/analysis/static-analysis.md). Detection
+is documented under [docs/detection](docs/detection).
