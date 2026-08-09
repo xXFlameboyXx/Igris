@@ -8,6 +8,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 Environment = Literal["development", "test", "production"]
 LogLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+MetadataBackend = Literal["json", "memory", "postgres"]
 
 
 class Settings(BaseSettings):
@@ -25,7 +26,12 @@ class Settings(BaseSettings):
     log_level: LogLevel = "INFO"
     enable_docs: bool = True
     database_url: SecretStr | None = None
+    metadata_backend: MetadataBackend = "json"
+    sample_storage_dir: str = "data/samples"
+    metadata_storage_file: str = "data/metadata/samples.json"
+    sample_temp_dir: str = "data/tmp"
     max_upload_bytes: int = Field(default=52_428_800, ge=1, le=1_073_741_824)
+    analysis_timeout_seconds: int = Field(default=10, ge=1, le=300)
     request_id_header: str = "X-Request-ID"
     trusted_proxy_headers: bool = False
 
@@ -43,4 +49,3 @@ def get_settings() -> Settings:
     """Return cached settings for the running process."""
 
     return Settings()
-

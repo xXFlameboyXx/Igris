@@ -20,6 +20,9 @@ The backend serves:
 
 - `GET /health`
 - `GET /api/v1/health`
+- `POST /api/v1/samples`
+- `GET /api/v1/samples/{sample_id}`
+- `GET /api/v1/samples/{sample_id}/file-info`
 - `GET /docs` when `IGRIS_ENABLE_DOCS=true`
 
 ## Frontend Setup
@@ -55,8 +58,9 @@ npm run build
 
 All backend settings use the `IGRIS_` prefix. See `.env.example`.
 
-Do not commit `.env` files or real secrets. `IGRIS_DATABASE_URL` is optional in
-Phase 0 and shown only as an example.
+Do not commit `.env` files or real secrets. `IGRIS_DATABASE_URL` is required when
+`IGRIS_METADATA_BACKEND=postgres`. Local development can use
+`IGRIS_METADATA_BACKEND=json`; tests use an in-memory repository.
 
 ## Docker Usage
 
@@ -68,4 +72,3 @@ docker compose up --build
 
 The compose file is for local development only. It is not a production deployment
 pipeline.
-

@@ -8,15 +8,18 @@ from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from igris import __version__
+from igris.api.v1.health import router as health_router
 from igris.api.v1.router import router as api_v1_router
 from igris.core.config import Settings, get_settings
 from igris.core.errors import (
+    AppError,
     app_error_handler,
     http_exception_handler,
     validation_exception_handler,
 )
 from igris.core.logging import configure_logging, get_logger
 from igris.middleware.request_id import RequestIdMiddleware
+from igris.storage.factory import build_metadata_repository, build_sample_storage
 
 
 @asynccontextmanager
@@ -47,18 +50,20 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         openapi_url="/openapi.json" if resolved_settings.enable_docs else None,
     )
     app.state.settings = resolved_settings
+    app.state.sample_storage = build_sample_storage(resolved_settings)
+    app.state.metadata_repository = build_metadata_repository(resolved_settings)
 
     app.add_middleware(RequestIdMiddleware)
 
+    app.add_exception_handler(AppError, app_error_handler)
     app.add_exception_handler(Exception, app_error_handler)
     app.add_exception_handler(StarletteHTTPException, http_exception_handler)
     app.add_exception_handler(RequestValidationError, validation_exception_handler)
 
     app.include_router(api_v1_router, prefix="/api/v1")
-    app.include_router(api_v1_router)
+    app.include_router(health_router)
 
     return app
 
 
 app = create_app()
-

@@ -22,6 +22,7 @@ services:
     environment:
       IGRIS_ENVIRONMENT: development
       IGRIS_LOG_LEVEL: INFO
+      IGRIS_METADATA_BACKEND: postgres
       IGRIS_DATABASE_URL: postgresql://igris:igris-dev-password@postgres:5432/igris
     ports:
       - "8000:8000"
@@ -40,4 +41,3 @@ services:
 
 volumes:
   postgres_data:
-
