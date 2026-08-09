@@ -220,3 +220,94 @@ def static_suspicious_pe_fixture() -> bytes:
     data[0x700:0x740] = bytes(range(64))
     data[0x800:0x900] = b"OVERLAY" * 36 + b"END!"
     return bytes(data)
+
+
+def reverse_x86_pe_fixture() -> bytes:
+    data = bytearray(0x700)
+    data[0:2] = b"MZ"
+    data[0x3C:0x40] = pack("<I", 0x80)
+    data[0x80:0x84] = b"PE\0\0"
+    coff = 0x84
+    data[coff : coff + 20] = pack(
+        "<HHIIIHH",
+        0x014C,
+        1,
+        1_700_000_000,
+        0,
+        0,
+        224,
+        0x010F,
+    )
+    optional = coff + 20
+    data[optional : optional + 96] = pack(
+        "<HBBIIIIIIIIIHHHHHHIIIIHHIIIIII",
+        0x10B,
+        14,
+        0,
+        0x400,
+        0,
+        0,
+        0x1000,
+        0x1000,
+        0,
+        0x400000,
+        0x1000,
+        0x200,
+        6,
+        0,
+        0,
+        0,
+        6,
+        0,
+        0,
+        0x2000,
+        0x200,
+        0,
+        3,
+        0,
+        0x100000,
+        0x1000,
+        0x100000,
+        0x1000,
+        0,
+        16,
+    )
+    section = optional + 224
+    data[section : section + 40] = pack(
+        "<8sIIIIIIHHI",
+        b".text\0\0\0",
+        0x400,
+        0x1000,
+        0x400,
+        0x200,
+        0,
+        0,
+        0,
+        0,
+        0x60000020,
+    )
+    entry = bytes.fromhex(
+        "55"
+        "89e5"
+        "b800124000"
+        "bb30124000"
+        "e80e000000"
+        "83f801"
+        "7503"
+        "90"
+        "eb01"
+        "90"
+        "c3"
+    )
+    helper = bytes.fromhex("5589e5b8010000005dc3")
+    data[0x200 : 0x200 + len(entry)] = entry
+    data[0x220 : 0x220 + len(helper)] = helper
+    data[0x400:0x400 + 23] = b"HKCU\\Software\\Igris\0"
+    data[0x430:0x430 + 13] = b"VirtualAlloc\0"
+    return bytes(data)
+
+
+def unsupported_arm64_pe_fixture() -> bytes:
+    data = bytearray(minimal_pe32_fixture())
+    data[0x84:0x86] = pack("<H", 0xAA64)
+    return bytes(data)

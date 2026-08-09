@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     static_high_entropy_threshold: float = Field(default=7.2, ge=0.0, le=8.0)
     detection_rules_path: str = "config/rules/static_rules.json"
     detection_engine_version: str = "heuristic-detection/v1"
+    reverse_engine_version: str = "reverse-analysis/v1"
+    reverse_max_instructions: int = Field(default=2_000, ge=1, le=100_000)
+    reverse_max_functions: int = Field(default=128, ge=1, le=10_000)
     request_id_header: str = "X-Request-ID"
     trusted_proxy_headers: bool = False
 

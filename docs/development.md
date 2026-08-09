@@ -28,6 +28,11 @@ The backend serves:
 - `GET /api/v1/samples/{sample_id}/indicators`
 - `POST /api/v1/samples/{sample_id}/detect`
 - `GET /api/v1/samples/{sample_id}/detection`
+- `POST /api/v1/samples/{sample_id}/reverse-analysis`
+- `GET /api/v1/samples/{sample_id}/reverse-analysis`
+- `GET /api/v1/samples/{sample_id}/functions`
+- `GET /api/v1/samples/{sample_id}/functions/{function_id}`
+- `GET /api/v1/samples/{sample_id}/cfg/{function_id}`
 - `GET /docs` when `IGRIS_ENABLE_DOCS=true`
 
 ## Frontend Setup
