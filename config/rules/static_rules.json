@@ -1,0 +1,63 @@
+[
+  {
+    "rule_id": "IGRIS-RULE-0001",
+    "name": "Network Indicators With Suspicious Strings",
+    "description": "Networking capability appears together with suspicious strings. This combination is more relevant than either signal alone.",
+    "severity": "medium",
+    "confidence": 0.72,
+    "version": "1.0.0",
+    "contribution": 1.2,
+    "evidence": "Networking API/category co-occurs with suspicious or command/interpreter strings.",
+    "conditions": [
+      {
+        "field": "api_category_counts.networking",
+        "operator": ">=",
+        "value": 1
+      },
+      {
+        "field": "string_counts.suspicious_keyword",
+        "operator": ">=",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "rule_id": "IGRIS-RULE-0002",
+    "name": "Process Manipulation With Writable Executable Section",
+    "description": "Process/thread manipulation capability appears with writable executable section characteristics.",
+    "severity": "high",
+    "confidence": 0.78,
+    "version": "1.0.0",
+    "contribution": 1.7,
+    "evidence": "Process/thread API capability combines with writable executable memory or section evidence.",
+    "conditions": [
+      {
+        "field": "api_category_counts.process_thread_manipulation",
+        "operator": ">=",
+        "value": 1
+      },
+      {
+        "field": "writable_executable_section_count",
+        "operator": ">=",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "rule_id": "IGRIS-RULE-0003",
+    "name": "Multiple Packing Indicators",
+    "description": "Several conservative packing indicators are present together.",
+    "severity": "medium",
+    "confidence": 0.7,
+    "version": "1.0.0",
+    "contribution": 1.1,
+    "evidence": "Multiple possible packing indicators co-occur.",
+    "conditions": [
+      {
+        "field": "evidence_counts.POSSIBLE_PACKING_INDICATOR",
+        "operator": ">=",
+        "value": 2
+      }
+    ]
+  }
+]
