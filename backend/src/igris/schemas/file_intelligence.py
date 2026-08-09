@@ -9,6 +9,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from igris.schemas.detection import DetectionResult
 from igris.schemas.reverse_analysis import ReverseAnalysisResult
 from igris.schemas.static_analysis import StaticAnalysisResult
+from igris.schemas.threat_intelligence import ThreatAssessment
 
 
 class AnalysisStatus(StrEnum):
@@ -235,6 +236,7 @@ class Sample(BaseModel):
     static_analysis: StaticAnalysisResult | None = None
     detection: DetectionResult | None = None
     reverse_analysis: ReverseAnalysisResult | None = None
+    threat_assessment: ThreatAssessment | None = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 

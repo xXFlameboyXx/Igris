@@ -8,6 +8,7 @@ from igris.analysis.file_intelligence.service import FileIntelligenceService
 from igris.analysis.reverse_analysis.service import ReverseAnalysisService
 from igris.analysis.static_analysis.service import StaticAnalysisService
 from igris.detection.service import DetectionService
+from igris.intelligence.threat.service import ThreatIntelligenceService
 from igris.schemas.detection import DetectionResponse
 from igris.schemas.file_intelligence import FileInfoResponse, SampleCreateResponse, SampleResponse
 from igris.schemas.reverse_analysis import (
@@ -17,6 +18,13 @@ from igris.schemas.reverse_analysis import (
     ReverseAnalysisResponse,
 )
 from igris.schemas.static_analysis import IndicatorsResponse, StaticAnalysisResponse
+from igris.schemas.threat_intelligence import (
+    CapabilitiesResponse,
+    EvidenceRelationshipsResponse,
+    NarrativeResponse,
+    TechniquesResponse,
+    ThreatAssessmentResponse,
+)
 
 router = APIRouter()
 
@@ -131,6 +139,58 @@ async def get_cfg(request: Request, sample_id: str, function_id: str) -> CFGResp
     return service.get_cfg(sample_id, function_id)
 
 
+@router.post("/{sample_id}/threat-assessment", response_model=ThreatAssessmentResponse)
+async def create_threat_assessment(
+    request: Request, sample_id: str
+) -> ThreatAssessmentResponse:
+    """Run evidence-driven threat-intelligence mapping or return the cached result."""
+
+    service = _threat_service_from_request(request)
+    return service.run(sample_id)
+
+
+@router.get("/{sample_id}/threat-assessment", response_model=ThreatAssessmentResponse)
+async def get_threat_assessment(request: Request, sample_id: str) -> ThreatAssessmentResponse:
+    """Return a previously generated threat-intelligence assessment."""
+
+    service = _threat_service_from_request(request)
+    return service.get(sample_id)
+
+
+@router.get("/{sample_id}/capabilities", response_model=CapabilitiesResponse)
+async def get_capabilities(request: Request, sample_id: str) -> CapabilitiesResponse:
+    """Return normalized capability hypotheses for a sample."""
+
+    service = _threat_service_from_request(request)
+    return service.capabilities(sample_id)
+
+
+@router.get("/{sample_id}/attack-mappings", response_model=TechniquesResponse)
+async def get_attack_mappings(request: Request, sample_id: str) -> TechniquesResponse:
+    """Return evidence-driven ATT&CK technique mappings for a sample."""
+
+    service = _threat_service_from_request(request)
+    return service.techniques(sample_id)
+
+
+@router.get("/{sample_id}/evidence-relationships", response_model=EvidenceRelationshipsResponse)
+async def get_evidence_relationships(
+    request: Request, sample_id: str
+) -> EvidenceRelationshipsResponse:
+    """Return the observation-to-technique evidence graph."""
+
+    service = _threat_service_from_request(request)
+    return service.relationships(sample_id)
+
+
+@router.get("/{sample_id}/narrative", response_model=NarrativeResponse)
+async def get_narrative(request: Request, sample_id: str) -> NarrativeResponse:
+    """Return the preliminary behavior narrative for a sample."""
+
+    service = _threat_service_from_request(request)
+    return service.narrative(sample_id)
+
+
 def _service_from_request(request: Request) -> FileIntelligenceService:
     return FileIntelligenceService(
         settings=request.app.state.settings,
@@ -157,6 +217,14 @@ def _detection_service_from_request(request: Request) -> DetectionService:
 
 def _reverse_service_from_request(request: Request) -> ReverseAnalysisService:
     return ReverseAnalysisService(
+        settings=request.app.state.settings,
+        sample_storage=request.app.state.sample_storage,
+        metadata_repository=request.app.state.metadata_repository,
+    )
+
+
+def _threat_service_from_request(request: Request) -> ThreatIntelligenceService:
+    return ThreatIntelligenceService(
         settings=request.app.state.settings,
         sample_storage=request.app.state.sample_storage,
         metadata_repository=request.app.state.metadata_repository,

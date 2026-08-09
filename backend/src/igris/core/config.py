@@ -40,6 +40,8 @@ class Settings(BaseSettings):
     reverse_engine_version: str = "reverse-analysis/v1"
     reverse_max_instructions: int = Field(default=2_000, ge=1, le=100_000)
     reverse_max_functions: int = Field(default=128, ge=1, le=10_000)
+    intelligence_mapping_path: str = "config/intelligence/attack_mappings.json"
+    intelligence_engine_version: str = "threat-intelligence/v1"
     request_id_header: str = "X-Request-ID"
     trusted_proxy_headers: bool = False
 

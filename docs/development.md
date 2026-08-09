@@ -33,6 +33,12 @@ The backend serves:
 - `GET /api/v1/samples/{sample_id}/functions`
 - `GET /api/v1/samples/{sample_id}/functions/{function_id}`
 - `GET /api/v1/samples/{sample_id}/cfg/{function_id}`
+- `POST /api/v1/samples/{sample_id}/threat-assessment`
+- `GET /api/v1/samples/{sample_id}/threat-assessment`
+- `GET /api/v1/samples/{sample_id}/capabilities`
+- `GET /api/v1/samples/{sample_id}/attack-mappings`
+- `GET /api/v1/samples/{sample_id}/evidence-relationships`
+- `GET /api/v1/samples/{sample_id}/narrative`
 - `GET /docs` when `IGRIS_ENABLE_DOCS=true`
 
 ## Frontend Setup

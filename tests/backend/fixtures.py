@@ -212,6 +212,7 @@ def static_suspicious_pe_fixture() -> bytes:
         b"192.0.2.15\0"
         b"HKCU\\Software\\IgrisTest\0"
         b"powershell.exe\0"
+        b"InternetOpenA\0"
         b"VirtualAlloc\0"
         b"CreateRemoteThread\0"
         b"benign test credential keyword\0"

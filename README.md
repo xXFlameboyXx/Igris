@@ -4,7 +4,8 @@ Igris is the Intelligent Graph-based Reverse-engineering and Inspection System.
 It is intended to become an explainable malware-analysis and threat-intelligence
 platform. The repository currently includes Phase 0 foundation work, Phase 1
 file intelligence, Phase 2 static-analysis evidence extraction, Phase 3
-transparent heuristic detection, and Phase 4 offline reverse engineering.
+transparent heuristic detection, Phase 4 offline reverse engineering, and Phase
+5 evidence-driven threat-intelligence mapping.
 
 Implemented foundation:
 
@@ -25,9 +26,13 @@ Implemented foundation:
   heuristics, and transparent score breakdowns.
 - Capstone-backed entry-point and direct-call disassembly with normalized
   functions, basic blocks, CFGs, call graphs, and string/API correlation.
+- Capability, behavior, and ATT&CK mapping from static and reverse-engineering
+  evidence, with explicit Observation -> Indicator -> Capability -> Technique
+  relationships.
 
-No sandbox, dynamic execution, similarity analysis, or ML feature is implemented.
-Detection is heuristic and explainable; it is not a final malware verdict.
+No sandbox, dynamic execution, similarity analysis, actor attribution, or ML
+feature is implemented. Detection and intelligence mapping are heuristic and
+explainable; they are not final malware verdicts.
 
 ## Repository Layout
 
@@ -107,6 +112,14 @@ Invoke-WebRequest -UseBasicParsing `
   -Method Post
 ```
 
+Run threat-intelligence mapping:
+
+```powershell
+Invoke-WebRequest -UseBasicParsing `
+  -Uri http://127.0.0.1:8000/api/v1/samples/<sample_id>/threat-assessment `
+  -Method Post
+```
+
 Install and run frontend:
 
 ```powershell
@@ -138,3 +151,5 @@ See [SECURITY.md](SECURITY.md), [docs/lab-design.md](docs/lab-design.md),
 [docs/analysis/static-analysis.md](docs/analysis/static-analysis.md). Detection
 is documented under [docs/detection](docs/detection).
 Reverse engineering is documented under [docs/reverse-engineering](docs/reverse-engineering).
+Threat-intelligence mapping is documented in
+[docs/intelligence/overview.md](docs/intelligence/overview.md).
