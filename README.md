@@ -1,5 +1,7 @@
 # Igris
 
+# STILL UNDER DEVELOPMENT
+
 Igris is the Intelligent Graph-based Reverse-engineering and Inspection System.
 It is intended to become an explainable malware-analysis and threat-intelligence
 platform. The repository currently includes Phase 0 foundation work, Phase 1
