@@ -1,1 +1,0 @@
-[{"rule_id": "TEST-RULE-1", "name": "Any String Evidence", "description": "Test rule for rule engine.", "severity": "low", "confidence": 0.5, "conditions": [{"field": "string_counts.url", "operator": ">=", "value": 1}], "evidence": "URL strings are present.", "version": "1.0.0", "contribution": 0.4}]
