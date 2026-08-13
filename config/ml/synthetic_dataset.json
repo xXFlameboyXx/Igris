@@ -1,0 +1,238 @@
+{
+  "dataset_version": "synthetic-phase6/v1",
+  "name": "Igris Phase 6 Synthetic Baseline",
+  "description": "Legally safe synthetic feature records for validating the ML pipeline.",
+  "provenance": "Created from benign-looking and malware-like synthetic Igris fixtures. No real malware is included.",
+  "license": "MIT; synthetic project-owned test data",
+  "limitations": [
+    "This dataset validates pipeline mechanics only and is not representative of real-world malware prevalence.",
+    "Synthetic labels are assigned from fixture intent, not from threat-intelligence ground truth."
+  ],
+  "records": [
+    {
+      "sample_id": "synth-benign-train-001",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000001",
+      "label": "benign",
+      "split": "train",
+      "family": "benign-docs-train",
+      "source": "Igris synthetic fixture",
+      "license": "MIT",
+      "feature_schema_version": "ml-static-reverse-feature-vector/v1",
+      "feature_set": "static_reverse",
+      "features": {
+        "file_size_bytes": 42,
+        "section_count": 0,
+        "entropy_mean": 3.1,
+        "string_count.generic_string": 3
+      }
+    },
+    {
+      "sample_id": "synth-benign-train-002",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000002",
+      "label": "benign",
+      "split": "train",
+      "family": "benign-updater-train",
+      "source": "Igris synthetic fixture",
+      "license": "MIT",
+      "feature_schema_version": "ml-static-reverse-feature-vector/v1",
+      "feature_set": "static_reverse",
+      "features": {
+        "file_size_bytes": 2048,
+        "section_count": 1,
+        "entropy_mean": 4.2,
+        "string_count.url": 1,
+        "api_category_count.networking": 1
+      }
+    },
+    {
+      "sample_id": "synth-malware-train-001",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000003",
+      "label": "malware",
+      "split": "train",
+      "family": "synthetic-loader-train",
+      "source": "Igris synthetic fixture",
+      "license": "MIT",
+      "feature_schema_version": "ml-static-reverse-feature-vector/v1",
+      "feature_set": "static_reverse",
+      "features": {
+        "file_size_bytes": 8192,
+        "section_count": 3,
+        "entropy_mean": 7.1,
+        "entropy_max": 7.8,
+        "api_category_count.memory_management": 2,
+        "api_category_count.process_thread_manipulation": 1,
+        "static_evidence_count.POSSIBLE_PACKING_INDICATOR": 2,
+        "reverse_evidence_count.EXECUTABLE_MEMORY_OPERATION": 1
+      }
+    },
+    {
+      "sample_id": "synth-malware-train-002",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000004",
+      "label": "malware",
+      "split": "train",
+      "family": "synthetic-persistence-train",
+      "source": "Igris synthetic fixture",
+      "license": "MIT",
+      "feature_schema_version": "ml-static-reverse-feature-vector/v1",
+      "feature_set": "static_reverse",
+      "features": {
+        "file_size_bytes": 12288,
+        "section_count": 4,
+        "entropy_mean": 6.9,
+        "string_count.registry_path": 2,
+        "string_count.command_interpreter": 1,
+        "api_category_count.registry": 2,
+        "static_evidence_count.INTERESTING_STRING": 3,
+        "reverse_evidence_count.STRING_API_CORRELATION": 1
+      }
+    },
+    {
+      "sample_id": "synth-benign-val-001",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000005",
+      "label": "benign",
+      "split": "validation",
+      "family": "benign-docs-validation",
+      "source": "Igris synthetic fixture",
+      "license": "MIT",
+      "feature_schema_version": "ml-static-reverse-feature-vector/v1",
+      "feature_set": "static_reverse",
+      "features": {
+        "file_size_bytes": 128,
+        "entropy_mean": 3.4,
+        "string_count.generic_string": 4
+      }
+    },
+    {
+      "sample_id": "synth-benign-val-002",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000006",
+      "label": "benign",
+      "split": "validation",
+      "family": "benign-admin-validation",
+      "source": "Igris synthetic fixture",
+      "license": "MIT",
+      "feature_schema_version": "ml-static-reverse-feature-vector/v1",
+      "feature_set": "static_reverse",
+      "features": {
+        "file_size_bytes": 4096,
+        "section_count": 2,
+        "entropy_mean": 4.8,
+        "api_category_count.filesystem": 2,
+        "api_category_count.system_information": 1
+      }
+    },
+    {
+      "sample_id": "synth-malware-val-001",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000007",
+      "label": "malware",
+      "split": "validation",
+      "family": "synthetic-loader-validation",
+      "source": "Igris synthetic fixture",
+      "license": "MIT",
+      "feature_schema_version": "ml-static-reverse-feature-vector/v1",
+      "feature_set": "static_reverse",
+      "features": {
+        "file_size_bytes": 16384,
+        "section_count": 4,
+        "entropy_mean": 7.3,
+        "api_category_count.process_thread_manipulation": 2,
+        "api_category_count.memory_management": 2,
+        "static_evidence_count.EXECUTABLE_WRITABLE_SECTION": 1,
+        "reverse_evidence_count.EXECUTABLE_MEMORY_OPERATION": 1
+      }
+    },
+    {
+      "sample_id": "synth-malware-val-002",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000008",
+      "label": "malware",
+      "split": "validation",
+      "family": "synthetic-c2-validation",
+      "source": "Igris synthetic fixture",
+      "license": "MIT",
+      "feature_schema_version": "ml-static-reverse-feature-vector/v1",
+      "feature_set": "static_reverse",
+      "features": {
+        "file_size_bytes": 10240,
+        "section_count": 3,
+        "entropy_mean": 6.7,
+        "string_count.url": 2,
+        "string_count.ipv4": 1,
+        "api_category_count.networking": 2,
+        "static_evidence_count.INTERESTING_STRING": 3
+      }
+    },
+    {
+      "sample_id": "synth-benign-test-001",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000009",
+      "label": "benign",
+      "split": "test",
+      "family": "benign-readme-test",
+      "source": "Igris synthetic fixture",
+      "license": "MIT",
+      "feature_schema_version": "ml-static-reverse-feature-vector/v1",
+      "feature_set": "static_reverse",
+      "features": {
+        "file_size_bytes": 256,
+        "entropy_mean": 3.7,
+        "string_count.generic_string": 2
+      }
+    },
+    {
+      "sample_id": "synth-benign-test-002",
+      "sha256": "000000000000000000000000000000000000000000000000000000000000000a",
+      "label": "benign",
+      "split": "test",
+      "family": "benign-updater-test",
+      "source": "Igris synthetic fixture",
+      "license": "MIT",
+      "feature_schema_version": "ml-static-reverse-feature-vector/v1",
+      "feature_set": "static_reverse",
+      "features": {
+        "file_size_bytes": 3072,
+        "section_count": 1,
+        "entropy_mean": 4.5,
+        "string_count.url": 1,
+        "api_category_count.networking": 1
+      }
+    },
+    {
+      "sample_id": "synth-malware-test-001",
+      "sha256": "000000000000000000000000000000000000000000000000000000000000000b",
+      "label": "malware",
+      "split": "test",
+      "family": "synthetic-persistence-test",
+      "source": "Igris synthetic fixture",
+      "license": "MIT",
+      "feature_schema_version": "ml-static-reverse-feature-vector/v1",
+      "feature_set": "static_reverse",
+      "features": {
+        "file_size_bytes": 14336,
+        "section_count": 4,
+        "entropy_mean": 6.8,
+        "string_count.registry_path": 2,
+        "string_count.command_interpreter": 1,
+        "api_category_count.registry": 2,
+        "static_evidence_count.INTERESTING_STRING": 3
+      }
+    },
+    {
+      "sample_id": "synth-malware-test-002",
+      "sha256": "000000000000000000000000000000000000000000000000000000000000000c",
+      "label": "malware",
+      "split": "test",
+      "family": "synthetic-packed-test",
+      "source": "Igris synthetic fixture",
+      "license": "MIT",
+      "feature_schema_version": "ml-static-reverse-feature-vector/v1",
+      "feature_set": "static_reverse",
+      "features": {
+        "file_size_bytes": 20480,
+        "section_count": 5,
+        "entropy_mean": 7.4,
+        "entropy_max": 7.9,
+        "static_evidence_count.POSSIBLE_PACKING_INDICATOR": 3,
+        "static_evidence_count.HIGH_ENTROPY_SECTION": 1,
+        "reverse_evidence_count.EXECUTABLE_MEMORY_OPERATION": 1
+      }
+    }
+  ]
+}
