@@ -42,7 +42,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     app = FastAPI(
         title="Igris API",
-        summary="Phase 0 foundation API for Igris.",
+        summary="Explainable malware-analysis and threat-intelligence API for Igris.",
         version=__version__,
         lifespan=lifespan,
         docs_url="/docs" if resolved_settings.enable_docs else None,

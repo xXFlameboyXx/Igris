@@ -4,8 +4,10 @@ Igris is the Intelligent Graph-based Reverse-engineering and Inspection System.
 It is intended to become an explainable malware-analysis and threat-intelligence
 platform. The repository currently includes Phase 0 foundation work, Phase 1
 file intelligence, Phase 2 static-analysis evidence extraction, Phase 3
-transparent heuristic detection, Phase 4 offline reverse engineering, and Phase
-5 evidence-driven threat-intelligence mapping.
+transparent heuristic detection, Phase 4 offline reverse engineering, Phase 5
+evidence-driven threat-intelligence mapping, Phase 6 reproducible ML
+baselines, and Phase 7 behavioral analysis abstractions and synthetic
+telemetry simulation.
 
 Implemented foundation:
 
@@ -29,10 +31,17 @@ Implemented foundation:
 - Capability, behavior, and ATT&CK mapping from static and reverse-engineering
   evidence, with explicit Observation -> Indicator -> Capability -> Technique
   relationships.
+- A reproducible ML baseline pipeline with synthetic dataset ingestion,
+  leakage-aware splitting, Logistic Regression, Random Forest, Gradient
+  Boosting, experiment tracking, model metadata, and explainable inference.
+- Phase 7 behavioral analysis subsystem with normalized Pydantic schemas,
+  deterministic SyntheticBehaviorAnalyzer across 6 scenarios, job queue and
+  SandboxController abstractions, and analyst-triggered REST endpoints.
 
-No sandbox, dynamic execution, similarity analysis, actor attribution, or ML
-feature is implemented. Detection and intelligence mapping are heuristic and
-explainable; they are not final malware verdicts.
+No real sandbox execution, live sample execution, similarity analysis, or actor attribution
+is implemented. Real sample execution is strictly isolated to future disposable environments.
+Detection, intelligence mapping, and ML predictions are evidence sources, not final malware
+verdicts.
 
 ## Repository Layout
 
@@ -120,6 +129,22 @@ Invoke-WebRequest -UseBasicParsing `
   -Method Post
 ```
 
+Run ML inference:
+
+```powershell
+Invoke-WebRequest -UseBasicParsing `
+  -Uri http://127.0.0.1:8000/api/v1/samples/<sample_id>/ml-prediction `
+  -Method Post
+```
+
+Run synthetic behavior analysis:
+
+```powershell
+Invoke-WebRequest -UseBasicParsing `
+  -Uri http://127.0.0.1:8000/api/v1/samples/<sample_id>/behavior-analysis `
+  -Method Post
+```
+
 Install and run frontend:
 
 ```powershell
@@ -147,9 +172,12 @@ Development and application environments must never execute arbitrary uploaded b
 Future dynamic behavior analysis belongs only in isolated, disposable environments with strict containment.
 
 See [SECURITY.md](SECURITY.md), [docs/lab-design.md](docs/lab-design.md),
+[docs/sandbox-threat-model.md](docs/sandbox-threat-model.md),
+[docs/behavior-analysis.md](docs/behavior-analysis.md),
 [docs/analysis/file-intelligence.md](docs/analysis/file-intelligence.md), and
 [docs/analysis/static-analysis.md](docs/analysis/static-analysis.md). Detection
 is documented under [docs/detection](docs/detection).
 Reverse engineering is documented under [docs/reverse-engineering](docs/reverse-engineering).
 Threat-intelligence mapping is documented in
 [docs/intelligence/overview.md](docs/intelligence/overview.md).
+ML is documented under [docs/ml](docs/ml).

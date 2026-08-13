@@ -39,6 +39,10 @@ The backend serves:
 - `GET /api/v1/samples/{sample_id}/attack-mappings`
 - `GET /api/v1/samples/{sample_id}/evidence-relationships`
 - `GET /api/v1/samples/{sample_id}/narrative`
+- `POST /api/v1/samples/{sample_id}/ml-prediction`
+- `GET /api/v1/samples/{sample_id}/ml-prediction`
+- `GET /api/v1/ml/model-metadata`
+- `GET /api/v1/ml/experiments`
 - `GET /docs` when `IGRIS_ENABLE_DOCS=true`
 
 ## Frontend Setup

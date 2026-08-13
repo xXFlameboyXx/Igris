@@ -3,9 +3,11 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
+from igris.analysis.behavioral.synthetic import SyntheticBehaviorAnalyzer
 from igris.core.config import Settings
 from igris.detection.rules import RuleEngine
 from igris.main import create_app
+from igris.schemas.behavior_analysis import SyntheticScenario
 from igris.schemas.static_analysis import StaticAnalysisResult
 
 from .fixtures import malformed_pe_fixture, static_suspicious_pe_fixture
@@ -111,6 +113,31 @@ def test_detection_is_idempotent(tmp_path: Path) -> None:
         second = client.post(f"/api/v1/samples/{sample_id}/detect").json()
 
     assert first == second
+
+
+def test_detection_consumes_cached_behavior_without_running_it(tmp_path: Path) -> None:
+    with make_client(tmp_path) as client:
+        sample_id = upload(client, b"hello world benign readme", "readme.txt")
+        repository = client.app.state.metadata_repository
+        sample = repository.get(sample_id)
+        assert sample is not None
+        sample.behavior_analysis = SyntheticBehaviorAnalyzer().analyze(
+            sample_id=sample_id,
+            scenario=SyntheticScenario.NETWORK_ACTIVITY,
+        )
+        repository.upsert(sample)
+        result = detect(client, sample_id)
+
+    assert result["status"] == "UNKNOWN"
+    assert result["behavior_evidence"]
+    behavior_sources = {
+        item["source"] for item in result["score_breakdown"]["evidence_contributions"]
+    }
+    assert "behavior_evidence" in behavior_sources
+    heuristic_ids = {item["heuristic_id"] for item in result["heuristics"]}
+    assert "HEUR-BEH-BEHAVIOR_NETWORK_ACTIVITY" in heuristic_ids
+    assert "Behavior evidence is consumed only" in result["limitations"][2]
+    assert "cached behavior evidence" in result["explanation"]
 
 
 def test_rule_engine_loads_reloadable_declarative_rules(tmp_path: Path) -> None:

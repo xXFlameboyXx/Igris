@@ -42,8 +42,12 @@ class Settings(BaseSettings):
     reverse_max_functions: int = Field(default=128, ge=1, le=10_000)
     intelligence_mapping_path: str = "config/intelligence/attack_mappings.json"
     intelligence_engine_version: str = "threat-intelligence/v1"
+    ml_dataset_manifest_path: str = "config/ml/synthetic_dataset.json"
+    ml_model_registry_path: str = "config/ml/model_registry.json"
+    ml_model_dir: str = "config/ml/models"
     request_id_header: str = "X-Request-ID"
     trusted_proxy_headers: bool = False
+    sandbox_timeout_seconds: int = Field(default=120, ge=1, le=600)
 
     @field_validator("request_id_header")
     @classmethod

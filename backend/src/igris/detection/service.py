@@ -48,7 +48,7 @@ class DetectionService:
             settings=self.settings,
             rule_engine=RuleEngine.from_path(Path(self.settings.detection_rules_path)),
         )
-        detection = engine.assess(static_analysis)
+        detection = engine.assess(static_analysis, behavior_analysis=sample.behavior_analysis)
         sample.detection = detection
         sample.updated_at = datetime.now(UTC)
         self.metadata_repository.upsert(sample)

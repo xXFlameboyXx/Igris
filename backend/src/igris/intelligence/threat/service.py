@@ -65,6 +65,7 @@ class ThreatIntelligenceService:
             strings=static_analysis.strings,
             imports=static_analysis.imports,
             reverse_evidence=reverse_analysis.evidence,
+            behavior_analysis=sample.behavior_analysis,
         )
         sample.threat_assessment = assessment
         sample.updated_at = datetime.now(UTC)
