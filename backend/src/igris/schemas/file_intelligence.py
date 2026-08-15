@@ -276,6 +276,17 @@ class SampleResponse(BaseModel):
     detected_format: DetectedFormat | None
     created_at: datetime
     updated_at: datetime
+    file_metadata: FileMetadata | None = None
+    static_analysis: StaticAnalysisResult | None = None
+    detection: DetectionResult | None = None
+    reverse_analysis: ReverseAnalysisResult | None = None
+    threat_assessment: ThreatAssessment | None = None
+    ml_prediction: MLPrediction | None = None
+    behavior_analysis: BehaviorAnalysisResult | None = None
+    similarity_analysis: SimilarityReport | None = None
+    malware_assessment: ExplainableAssessment | None = None
+    bookmarks: list[Bookmark] = Field(default_factory=list)
+    notes: list[AnalystNote] = Field(default_factory=list)
 
     @classmethod
     def from_sample(cls, sample: Sample) -> "SampleResponse":
@@ -292,6 +303,17 @@ class SampleResponse(BaseModel):
             detected_format=detected_format,
             created_at=sample.created_at,
             updated_at=sample.updated_at,
+            file_metadata=sample.file_metadata,
+            static_analysis=sample.static_analysis,
+            detection=sample.detection,
+            reverse_analysis=sample.reverse_analysis,
+            threat_assessment=sample.threat_assessment,
+            ml_prediction=sample.ml_prediction,
+            behavior_analysis=sample.behavior_analysis,
+            similarity_analysis=sample.similarity_analysis,
+            malware_assessment=sample.malware_assessment,
+            bookmarks=sample.bookmarks,
+            notes=sample.notes,
         )
 
 

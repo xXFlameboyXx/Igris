@@ -102,7 +102,7 @@ export function Shell() {
         if (list.length > 0) {
           apiClient
             .getSample(list[0].sample_id, controller.signal)
-            .then((full) => setCurrentSample(full.sample))
+            .then((fullSample) => setCurrentSample(fullSample))
             .catch(() => setCurrentSample(list[0]));
         } else {
           setCurrentSample(null);
@@ -125,10 +125,10 @@ export function Shell() {
     if (!sampleId) return;
     try {
       notify(`Loading specimen ${sampleId.slice(0, 8)}...`);
-      const res = await apiClient.getSample(sampleId);
-      setCurrentSample(res.sample);
+      const sample = await apiClient.getSample(sampleId);
+      setCurrentSample(sample);
       setIsSyntheticMode(false);
-      notify(`Loaded specimen: ${res.sample.original_filename}`);
+      notify(`Loaded specimen: ${sample.original_filename || sample.safe_filename || sample.sample_id.slice(0, 8)}`);
     } catch (err) {
       notify(`Failed to load specimen: ${err instanceof Error ? err.message : String(err)}`);
     }
@@ -148,16 +148,16 @@ export function Shell() {
       }
 
       // Fetch updated samples list and the newly uploaded sample
-      const [listRes, fullRes] = await Promise.all([
+      const [listRes, fullSample] = await Promise.all([
         apiClient.listSamples().catch(() => ({ samples: [] })),
         apiClient.getSample(created.sample_id),
       ]);
 
       setSamplesList(listRes.samples || []);
-      setCurrentSample(fullRes.sample);
+      setCurrentSample(fullSample);
       setIsSyntheticMode(false);
       setActiveTab("overview");
-      notify(`Loaded specimen: ${fullRes.sample.original_filename}`);
+      notify(`Loaded specimen: ${fullSample.original_filename || fullSample.safe_filename || file.name}`);
     } catch (err) {
       notify(`Upload error: ${err instanceof Error ? err.message : String(err)}`);
       throw err;
@@ -197,7 +197,7 @@ export function Shell() {
         }
 
         const refreshed = await apiClient.getSample(sId);
-        setCurrentSample(refreshed.sample);
+        setCurrentSample(refreshed);
         notify(`Completed ${layer} analysis successfully.`);
       }
     } catch (err) {

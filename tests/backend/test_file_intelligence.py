@@ -177,11 +177,49 @@ def test_list_samples_empty_and_populated(tmp_path: Path) -> None:
         s1 = upload(client, b"sample 1 content", "binary1.exe")
         s2 = upload(client, b"sample 2 content", "binary2.elf")
 
-        # 3. Listing returns both samples
+        # 3. Listing returns both samples with original_filename
         res_populated = client.get("/api/v1/samples")
         assert res_populated.status_code == 200
         samples = res_populated.json()["samples"]
         assert len(samples) == 2
-        ids = {s["sample_id"] for s in samples}
+        ids = {s["sample_id"]: s for s in samples}
         assert s1 in ids
         assert s2 in ids
+        assert ids[s1]["original_filename"] == "binary1.exe"
+        assert ids[s2]["original_filename"] == "binary2.elf"
+
+
+def test_exe_upload_and_retrieval_contract(tmp_path: Path) -> None:
+    """Verify that uploading a PE/EXE file returns a sample whose GET detail contract matches.
+
+    Frontend expectations require root-level original_filename, hashes, and metadata.
+    """
+    pe_content = minimal_pe32_fixture()
+    with make_client(tmp_path) as client:
+        upload_resp = client.post(
+            "/api/v1/samples",
+            files={"file": ("malware_payload.exe", pe_content, "application/x-dosexec")},
+        )
+        assert upload_resp.status_code == 201
+        upload_data = upload_resp.json()
+        sample_id = upload_data["sample_id"]
+        assert upload_data["sha256"] == hashlib.sha256(pe_content).hexdigest()
+
+        # Retrieve specimen directly via GET /api/v1/samples/{sample_id}
+        detail_resp = client.get(f"/api/v1/samples/{sample_id}")
+        assert detail_resp.status_code == 200
+        detail = detail_resp.json()
+
+        # Ensure root-level specimen contract has original_filename and metadata
+        assert detail["sample_id"] == sample_id
+        assert detail["original_filename"] == "malware_payload.exe"
+        assert detail["safe_filename"] == "malware_payload.exe"
+        assert detail["detected_format"] == "pe"
+        assert detail["size_bytes"] == len(pe_content)
+        assert "hashes" in detail
+        assert detail["hashes"]["sha256"] == upload_data["sha256"]
+        assert (
+            detail["hashes"]["sha1"] == hashlib.sha1(pe_content, usedforsecurity=False).hexdigest()
+        )
+        assert detail["hashes"]["md5"] == hashlib.md5(pe_content, usedforsecurity=False).hexdigest()
+        assert detail["status"] in ("pending", "completed", "running")

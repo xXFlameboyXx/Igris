@@ -61,9 +61,10 @@ export interface Sample {
   original_filename: string;
   safe_filename: string;
   hashes: HashSet;
-  storage_ref: string;
+  storage_ref?: string;
   size_bytes: number;
-  status: "pending" | "analyzing" | "completed" | "failed";
+  status: "pending" | "running" | "analyzing" | "completed" | "failed";
+  detected_format?: FileFormat | string | null;
   file_metadata?: FileMetadata;
   static_analysis?: StaticAnalysisResult;
   reverse_analysis?: ReverseAnalysisResult;
@@ -528,9 +529,7 @@ export interface SampleCreateResponse {
   created_at: string;
 }
 
-export interface SampleResponse {
-  sample: Sample;
-}
+export type SampleResponse = Sample;
 
 export interface SampleListResponse {
   samples: Sample[];

@@ -97,7 +97,7 @@ export function Header({
                 <optgroup label="Ingested Specimens">
                   {samplesList.map((s) => (
                     <option key={s.sample_id} value={s.sample_id}>
-                      {s.original_filename} ({s.malware_assessment?.verdict || s.status})
+                      {s.original_filename || s.safe_filename || s.sample_id.slice(0, 8)} ({s.malware_assessment?.verdict || s.status})
                     </option>
                   ))}
                 </optgroup>
@@ -105,7 +105,7 @@ export function Header({
               {currentSample && !samplesList.some((d) => d.sample_id === currentSample.sample_id) && (
                 <optgroup label="Active Investigation">
                   <option value={currentSample.sample_id}>
-                    {currentSample.original_filename} ({currentSample.sample_id.slice(0, 8)})
+                    {currentSample.original_filename || currentSample.safe_filename || currentSample.sample_id.slice(0, 8)} ({currentSample.sample_id.slice(0, 8)})
                   </option>
                 </optgroup>
               )}
@@ -160,7 +160,7 @@ export function Header({
         <div className="sample-context-bar" role="region" aria-label="Active sample context">
           <div className="context-item filename-context">
             <span className="context-label">SPECIMEN:</span>
-            <strong className="context-val">{currentSample.original_filename}</strong>
+            <strong className="context-val">{currentSample.original_filename || currentSample.safe_filename || currentSample.sample_id}</strong>
           </div>
 
           <div className="context-item sha-context">
