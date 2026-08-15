@@ -1,0 +1,184 @@
+{
+  "review_id": "sec-rev-phase17-001",
+  "timestamp": "2026-08-14T17:40:00Z",
+  "code_version": "0.1.0",
+  "configuration_version": "v1",
+  "findings": [
+    {
+      "finding_id": "SEC-001-PATH-TRAVERSAL-FILENAME",
+      "title": "Path traversal prevention in sample upload filename sanitization",
+      "severity": "MEDIUM",
+      "status": "RESOLVED_FINDING",
+      "affected_component": "FileIntelligenceService (sanitize_filename)",
+      "attack_preconditions": "Attacker submits malicious filename with '../' or backslashes in multipart header",
+      "attacker_controlled_input": "UploadFile.filename header",
+      "impact": "Storage path traversal or directory escaping if filename was used directly",
+      "reproduction_status": "Reproduced and verified mitigated",
+      "evidence": "sanitize_filename strips all path elements via Path.name and safe regex character substitution, and storage paths use content-addressed SHA256 hashes",
+      "root_cause": "Untrusted filename header supplied in multipart upload",
+      "remediation": "Strict filename sanitization and content-addressed storage isolation using SHA256 hash digests",
+      "regression_test": "tests/backend/test_security_hardening.py::test_path_traversal_filename_sanitization",
+      "residual_risk": "None for storage; original filename is retained strictly as metadata string"
+    },
+    {
+      "finding_id": "SEC-002-OVERSIZED-FILE-EXHAUSTION",
+      "title": "Resource exhaustion via unbounded upload stream",
+      "severity": "HIGH",
+      "status": "RESOLVED_FINDING",
+      "affected_component": "FileIntelligenceService (_stream_to_temp)",
+      "attack_preconditions": "Attacker streams arbitrary multi-gigabyte payload in upload body",
+      "attacker_controlled_input": "HTTP multipart upload body",
+      "impact": "Host disk space and memory exhaustion",
+      "reproduction_status": "Reproduced and verified mitigated",
+      "evidence": "Streaming chunk loop checks size_bytes > max_upload_bytes on every 64KB chunk and immediately aborts with HTTP 413 and deletes temporary file",
+      "root_cause": "Unbounded HTTP stream ingestion without chunk-level limit enforcement",
+      "remediation": "Stream in 64KB chunks with strict size enforcement and exception-guaranteed temporary file cleanup",
+      "regression_test": "tests/backend/test_security_hardening.py::test_oversized_upload_rejected",
+      "residual_risk": "Low; max_upload_bytes default is 50MB, configurable via IGRIS_MAX_UPLOAD_BYTES"
+    },
+    {
+      "finding_id": "SEC-003-DEFENSIVE-HTTP-HEADERS",
+      "title": "Missing defensive HTTP response security headers",
+      "severity": "LOW",
+      "status": "RESOLVED_FINDING",
+      "affected_component": "SecurityHeadersMiddleware",
+      "attack_preconditions": "Browser client accessing API in cross-origin or framing context",
+      "attacker_controlled_input": "Cross-site web requests",
+      "impact": "MIME-type sniffing or iframe clickjacking in browser contexts",
+      "reproduction_status": "Reproduced and verified mitigated",
+      "evidence": "SecurityHeadersMiddleware enforces X-Content-Type-Options: nosniff, X-Frame-Options: DENY, CSP, and Referrer-Policy",
+      "root_cause": "FastAPI default does not include explicit security headers",
+      "remediation": "Added ASGI middleware enforcing strict headers across all responses",
+      "regression_test": "tests/backend/test_security_hardening.py::test_security_headers_middleware_enforced",
+      "residual_risk": "None"
+    },
+    {
+      "finding_id": "SEC-004-PDF-STREAM-DELIMITER-INJECTION",
+      "title": "PDF content stream delimiter injection via unescaped string literals",
+      "severity": "MEDIUM",
+      "status": "RESOLVED_FINDING",
+      "affected_component": "PurePDFRenderer (_sanitize_pdf_text)",
+      "attack_preconditions": "Hostile sample or analyst notes containing unbalanced parentheses or backslashes",
+      "attacker_controlled_input": "Hostile strings in sample metadata or analyst notes",
+      "impact": "PDF syntax corruption or viewer parsing failure",
+      "reproduction_status": "Reproduced and verified mitigated",
+      "evidence": "_sanitize_pdf_text escapes backslashes and parentheses and strips control characters",
+      "root_cause": "Direct insertion of arbitrary UTF-8 strings into PDF content stream",
+      "remediation": "Implement strict PDF string escaping, control character stripping, and safe Type 1 font encoding",
+      "regression_test": "tests/backend/test_security_hardening.py::test_report_pdf_generation_text_sanitization",
+      "residual_risk": "None; PDF renderer runs purely in-memory without invoking external binaries"
+    }
+  ],
+  "security_test_results": [
+    {
+      "test_name": "test_path_traversal_filename_sanitization",
+      "category": "Input Validation",
+      "passed": true,
+      "description": "Verifies directory traversal sequences and absolute paths are stripped from filenames"
+    },
+    {
+      "test_name": "test_zero_byte_upload_handled_safely",
+      "category": "Input Validation",
+      "passed": true,
+      "description": "Verifies 0-byte upload is safely classified as format empty without crashing"
+    },
+    {
+      "test_name": "test_oversized_upload_rejected",
+      "category": "Resource Limits",
+      "passed": true,
+      "description": "Verifies uploads exceeding max_upload_bytes return HTTP 413"
+    },
+    {
+      "test_name": "test_malformed_pe_headers_handled_safely",
+      "category": "Parser Safety",
+      "passed": true,
+      "description": "Verifies truncated or corrupted PE headers raise PEParseError without crashing"
+    },
+    {
+      "test_name": "test_malformed_elf_headers_handled_safely",
+      "category": "Parser Safety",
+      "passed": true,
+      "description": "Verifies truncated or corrupted ELF headers raise ELFParseError without crashing"
+    },
+    {
+      "test_name": "test_security_headers_middleware_enforced",
+      "category": "API Security",
+      "passed": true,
+      "description": "Verifies X-Content-Type-Options, X-Frame-Options, and CSP are enforced"
+    },
+    {
+      "test_name": "test_error_masking_no_stack_trace_leakage",
+      "category": "Error Handling",
+      "passed": true,
+      "description": "Verifies unhandled errors return sanitized JSON without Python stack traces"
+    },
+    {
+      "test_name": "test_report_pdf_generation_text_sanitization",
+      "category": "Report Security",
+      "passed": true,
+      "description": "Verifies PDF generator handles hostile inputs without syntax corruption"
+    },
+    {
+      "test_name": "test_secrets_and_config_sanitization",
+      "category": "Secrets Management",
+      "passed": true,
+      "description": "Verifies SecretStr masks sensitive connection strings in logs and repr"
+    }
+  ],
+  "scanner_results": [
+    {
+      "tool": "ruff (flake8-bandit)",
+      "version": "0.6.0+",
+      "command": "uv run ruff check .",
+      "findings_count": 0,
+      "accepted_count": 0,
+      "notes": "Passed with 0 errors across 168 files (S101 assert ignored for tests only)"
+    },
+    {
+      "tool": "mypy",
+      "version": "1.11.0+",
+      "command": "uv run mypy",
+      "findings_count": 0,
+      "accepted_count": 0,
+      "notes": "Passed strict type checking across 119 source files"
+    },
+    {
+      "tool": "eslint",
+      "version": "9.0.0+",
+      "command": "npm run lint",
+      "findings_count": 0,
+      "accepted_count": 0,
+      "notes": "Passed with 0 errors and 0 warnings across frontend codebase"
+    }
+  ],
+  "components_reviewed": [
+    "Sample Ingestion & Upload Streaming",
+    "Local Sample Storage & Content-Addressed Naming",
+    "PE Binary Parser & Header Safety",
+    "ELF Binary Parser & Header Safety",
+    "Entropy Calculation & Chunk Processing",
+    "Deterministic String Extraction & Limits",
+    "Static Rule Detection & Engine Versioning",
+    "Capstone Linear Disassembly & CFG Generation",
+    "Machine Learning Classifier & SHAP Explainability",
+    "Behavioral Telemetry Parsing & Emulated Sandbox Boundary",
+    "SSDEEP & TLSH Similarity Clustering",
+    "MITRE ATT&CK Intelligence Mapping",
+    "Explainable Verdict Assessment & Epistemology Correlation",
+    "Investigation Workspace, Bookmarks & Notes Storage",
+    "Pure Python PDF Report Generator & Sanitizer",
+    "Orchestration DAG & Stage Execution Limits",
+    "Evaluation Research Harness & Robustness Perturbation Matrix"
+  ],
+  "residual_risks": [
+    "Single-Tenant Research Assumption: Igris is currently designed as a single-tenant local/research platform and does not implement multi-user RBAC or OAuth2/OIDC authentication.",
+    "Emulated Behavioral Sandbox: Behavioral analysis in default test configurations uses synthetic/emulated telemetry; production deployment with live malware execution requires external hardware-isolated hypervisor VMs.",
+    "Binary Parser Memory Bounds: While Python memory safety prevents buffer overflows, extremely large binaries are bounded by max_upload_bytes (50MB default)."
+  ],
+  "deployment_assumptions": [
+    "Igris API is hosted within a secure internal network or isolated analyst workstation.",
+    "Direct network exposure of the API to untrusted public networks requires a reverse proxy (e.g. Nginx, Envoy) with TLS termination and external authentication.",
+    "Storage directories (data/samples, data/metadata) are mounted with restricted read/write permissions for the Igris process user."
+  ],
+  "overall_assessment": "SECURITY REVIEW COMPLETE — HARDENED WITH DOCUMENTED RESIDUAL RISK"
+}

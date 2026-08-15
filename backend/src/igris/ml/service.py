@@ -47,9 +47,7 @@ class MLService:
         registry = load_model_registry(Path(self.settings.ml_model_registry_path))
         return ExperimentResultsResponse(experiments=registry.experiments)
 
-    def predict(
-        self, sample_id: str, model_version: str | None = None
-    ) -> MLPredictionResponse:
+    def predict(self, sample_id: str, model_version: str | None = None) -> MLPredictionResponse:
         sample = self.metadata_repository.get(sample_id)
         if sample is None:
             raise AppError("Sample not found", code="sample_not_found", status_code=404)
@@ -100,6 +98,7 @@ class MLService:
             feature_schema_version=feature_vector.feature_schema_version,
         )
         sample.ml_prediction = prediction
+        sample.malware_assessment = None
         sample.updated_at = datetime.now(UTC)
         self.metadata_repository.upsert(sample)
         return MLPredictionResponse(prediction=prediction)

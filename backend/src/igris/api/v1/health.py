@@ -20,4 +20,3 @@ async def health(request: Request) -> HealthResponse:
         environment=settings.environment,
         components={"api": "ok"},
     )
-

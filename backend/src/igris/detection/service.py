@@ -50,6 +50,7 @@ class DetectionService:
         )
         detection = engine.assess(static_analysis, behavior_analysis=sample.behavior_analysis)
         sample.detection = detection
+        sample.malware_assessment = None
         sample.updated_at = datetime.now(UTC)
         self.metadata_repository.upsert(sample)
         return DetectionResponse(detection=detection)

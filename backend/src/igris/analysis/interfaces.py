@@ -37,4 +37,3 @@ class Analyzer(ABC):
     @abstractmethod
     async def analyze(self, analysis_input: AnalysisInput) -> AnalysisResult:
         """Analyze a hostile sample handle inside the appropriate security boundary."""
-

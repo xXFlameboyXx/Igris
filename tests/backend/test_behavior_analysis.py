@@ -90,9 +90,15 @@ def test_behavior_evidence_type_has_ten_members() -> None:
     """Verify the approved 10-type taxonomy is defined."""
     assert len(BehaviorEvidenceType) == 10
     expected = {
-        "PROCESS_CREATION", "FILE_WRITE", "FILE_DELETE",
-        "REGISTRY_MODIFICATION", "NETWORK_CONNECTION", "DNS_QUERY",
-        "DROPPED_EXECUTABLE", "MUTEX_CREATION", "SERVICE_CREATION",
+        "PROCESS_CREATION",
+        "FILE_WRITE",
+        "FILE_DELETE",
+        "REGISTRY_MODIFICATION",
+        "NETWORK_CONNECTION",
+        "DNS_QUERY",
+        "DROPPED_EXECUTABLE",
+        "MUTEX_CREATION",
+        "SERVICE_CREATION",
         "EVASION_ATTEMPT",
     }
     assert {e.value for e in BehaviorEvidenceType} == expected
@@ -132,16 +138,15 @@ def test_synthetic_analyzer_marks_results_as_synthetic() -> None:
         assert result.sandbox_metadata.os_platform == "synthetic"
         assert result.status.value == "completed"
         assert result.schema_version == "behavior-analysis/v1"
-        assert any("synthetic" in lim.lower() or "no actual" in lim.lower()
-                    for lim in result.limitations)
+        assert any(
+            "synthetic" in lim.lower() or "no actual" in lim.lower() for lim in result.limitations
+        )
 
 
 def test_synthetic_analyzer_scenario_override() -> None:
     """Explicit scenario parameter must override hash-based selection."""
     analyzer = SyntheticBehaviorAnalyzer()
-    result = analyzer.analyze(
-        sample_id="any-id", scenario=SyntheticScenario.NETWORK_ACTIVITY
-    )
+    result = analyzer.analyze(sample_id="any-id", scenario=SyntheticScenario.NETWORK_ACTIVITY)
     assert result.sandbox_metadata.synthetic_scenario == "network_activity"
     assert len(result.network_events) > 0
 

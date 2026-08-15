@@ -41,4 +41,3 @@ def test_validation_errors_are_structured() -> None:
     assert payload["error"]["code"] == "validation_error"
     assert payload["request_id"] == "req-422"
     assert payload["error"]["details"][0]["loc"] == ["path", "item_id"]
-

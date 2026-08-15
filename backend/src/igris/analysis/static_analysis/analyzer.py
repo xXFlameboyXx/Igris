@@ -171,9 +171,7 @@ def _build_evidence(
     return _assign_evidence_ids(evidence)
 
 
-def _section_evidence(
-    sections: list[SectionMetadata], settings: Settings
-) -> list[StaticEvidence]:
+def _section_evidence(sections: list[SectionMetadata], settings: Settings) -> list[StaticEvidence]:
     evidence: list[StaticEvidence] = []
     previous_raw_offset = -1
     for section in sections:

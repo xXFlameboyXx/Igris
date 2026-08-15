@@ -79,7 +79,7 @@ def malformed_pe_fixture() -> bytes:
 
 
 def minimal_elf64_fixture() -> bytes:
-    text = b"\xC3"
+    text = b"\xc3"
     shstrtab = b"\0.text\0.shstrtab\0"
     text_offset = 0x100
     shstrtab_offset = 0x110
@@ -287,24 +287,12 @@ def reverse_x86_pe_fixture() -> bytes:
         0,
         0x60000020,
     )
-    entry = bytes.fromhex(
-        "55"
-        "89e5"
-        "b800124000"
-        "bb30124000"
-        "e80e000000"
-        "83f801"
-        "7503"
-        "90"
-        "eb01"
-        "90"
-        "c3"
-    )
+    entry = bytes.fromhex("5589e5b800124000bb30124000e80e00000083f801750390eb0190c3")
     helper = bytes.fromhex("5589e5b8010000005dc3")
     data[0x200 : 0x200 + len(entry)] = entry
     data[0x220 : 0x220 + len(helper)] = helper
-    data[0x400:0x400 + 23] = b"HKCU\\Software\\Igris\0"
-    data[0x430:0x430 + 13] = b"VirtualAlloc\0"
+    data[0x400 : 0x400 + 23] = b"HKCU\\Software\\Igris\0"
+    data[0x430 : 0x430 + 13] = b"VirtualAlloc\0"
     return bytes(data)
 
 

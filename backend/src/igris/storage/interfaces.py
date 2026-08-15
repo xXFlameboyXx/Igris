@@ -21,4 +21,3 @@ class SampleRepository(ABC):
     @abstractmethod
     async def get(self, sample_id: str) -> StoredSample | None:
         """Return sample metadata without exposing raw file contents."""
-

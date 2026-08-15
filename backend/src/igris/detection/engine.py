@@ -60,9 +60,7 @@ class DetectionEngine:
             behavior_evidence=behavior_evidence,
             severity=severity,
             confidence=confidence,
-            explanation=_explain(
-                score, status, triggered_rules, heuristics, behavior_evidence
-            ),
+            explanation=_explain(score, status, triggered_rules, heuristics, behavior_evidence),
             score_breakdown=breakdown,
             engine_version=self.settings.detection_engine_version,
             limitations=[

@@ -44,8 +44,7 @@ _SYNTHETIC_DROPPED_HASH = hashlib.sha256(b"igris-synthetic-dropped-file").hexdig
 _SCENARIOS = list(SyntheticScenario)
 
 _SYNTHETIC_LIMITATIONS = [
-    "This is synthetic behavior data generated for testing. "
-    "No actual sample execution occurred.",
+    "This is synthetic behavior data generated for testing. No actual sample execution occurred.",
     "Synthetic scenarios do not represent real observations of the uploaded sample.",
     "A real sandbox environment is required for genuine dynamic analysis.",
 ]
@@ -92,8 +91,13 @@ class SyntheticBehaviorAnalyzer:
         selected = scenario or select_scenario(sample_id)
         builder = _BUILDERS[selected]
         (
-            processes, file_events, registry_events,
-            network_events, dropped_files, mutexes, evidence,
+            processes,
+            file_events,
+            registry_events,
+            network_events,
+            dropped_files,
+            mutexes,
+            evidence,
         ) = builder()
         return BehaviorAnalysisResult(
             sample_id=sample_id,
@@ -167,7 +171,9 @@ def _build_benign() -> _BuilderResult:
     ]
     file_events = [
         FileEvent(
-            timestamp_ms=50, pid=1000, operation="read",
+            timestamp_ms=50,
+            pid=1000,
+            operation="read",
             path="/synthetic/data/config.ini",
         ),
     ]
@@ -376,7 +382,10 @@ def _build_multi_stage_activity() -> _BuilderResult:
     processes = [
         ProcessEvent(timestamp_ms=0, pid=1000, ppid=500, process_name="sample.exe", is_sample=True),
         ProcessEvent(
-            timestamp_ms=100, pid=1001, ppid=1000, process_name="stage2.exe",
+            timestamp_ms=100,
+            pid=1001,
+            ppid=1000,
+            process_name="stage2.exe",
         ),
     ]
     file_events = [

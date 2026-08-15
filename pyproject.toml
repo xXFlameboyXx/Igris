@@ -36,7 +36,11 @@ packages = ["backend/src/igris"]
 [tool.pytest.ini_options]
 pythonpath = ["backend/src"]
 testpaths = ["tests/backend"]
-addopts = "-q -p no:cacheprovider"
+addopts = "-q -p no:cacheprovider --basetemp=.pytest_tmp"
+filterwarnings = [
+    "ignore:Using `httpx` with `starlette.testclient` is deprecated:starlette.exceptions.StarletteDeprecationWarning",
+    "ignore:Setting the shape on a NumPy array has been deprecated:DeprecationWarning:joblib.numpy_pickle",
+]
 
 [tool.ruff]
 target-version = "py311"

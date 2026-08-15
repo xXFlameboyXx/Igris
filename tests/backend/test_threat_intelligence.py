@@ -185,9 +185,7 @@ def test_evidence_graph_preserves_observation_indicator_capability_technique_cha
     with make_client(tmp_path) as client:
         sample_id = upload(client, reverse_x86_pe_fixture(), "reverse.exe")
         result = assess(client, sample_id)
-        relationships_response = client.get(
-            f"/api/v1/samples/{sample_id}/evidence-relationships"
-        )
+        relationships_response = client.get(f"/api/v1/samples/{sample_id}/evidence-relationships")
 
     assert relationships_response.status_code == 200
     graph = relationships_response.json()["evidence_graph"]

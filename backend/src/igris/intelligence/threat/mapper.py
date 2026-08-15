@@ -350,7 +350,7 @@ def _build_graph(
                     node_type="Indicator",
                     label=indicator_id,
                     details={"mapping_id": mapping.mapping_id},
-                )
+                ),
             )
 
         for observation_id in mapping.observation_ids:
@@ -408,9 +408,7 @@ def _narrative(
             "provide more context."
         )
     capability_text = ", ".join(str(item.category) for item in capabilities)
-    technique_text = ", ".join(
-        f"{item.technique_id} {item.technique_name}" for item in techniques
-    )
+    technique_text = ", ".join(f"{item.technique_id} {item.technique_name}" for item in techniques)
     hypothesis_text = " ".join(item.statement for item in hypotheses)
     return (
         f"OBSERVED: Igris found technical evidence associated with {capability_text}. "

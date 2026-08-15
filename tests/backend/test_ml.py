@@ -64,16 +64,24 @@ def test_feature_extraction_is_deterministic(tmp_path: Path) -> None:
         settings = client.app.state.settings
         storage = client.app.state.sample_storage
         repository = client.app.state.metadata_repository
-        static = StaticAnalysisService(
-            settings=settings,
-            sample_storage=storage,
-            metadata_repository=repository,
-        ).run(sample_id).analysis
-        reverse = ReverseAnalysisService(
-            settings=settings,
-            sample_storage=storage,
-            metadata_repository=repository,
-        ).run(sample_id).reverse_analysis
+        static = (
+            StaticAnalysisService(
+                settings=settings,
+                sample_storage=storage,
+                metadata_repository=repository,
+            )
+            .run(sample_id)
+            .analysis
+        )
+        reverse = (
+            ReverseAnalysisService(
+                settings=settings,
+                sample_storage=storage,
+                metadata_repository=repository,
+            )
+            .run(sample_id)
+            .reverse_analysis
+        )
         sample = repository.get(sample_id)
         assert sample is not None
         first = build_ml_feature_vector(
@@ -102,16 +110,24 @@ def test_future_behavior_feature_set_uses_cached_behavior_only(tmp_path: Path) -
         settings = client.app.state.settings
         storage = client.app.state.sample_storage
         repository = client.app.state.metadata_repository
-        static = StaticAnalysisService(
-            settings=settings,
-            sample_storage=storage,
-            metadata_repository=repository,
-        ).run(sample_id).analysis
-        reverse = ReverseAnalysisService(
-            settings=settings,
-            sample_storage=storage,
-            metadata_repository=repository,
-        ).run(sample_id).reverse_analysis
+        static = (
+            StaticAnalysisService(
+                settings=settings,
+                sample_storage=storage,
+                metadata_repository=repository,
+            )
+            .run(sample_id)
+            .analysis
+        )
+        reverse = (
+            ReverseAnalysisService(
+                settings=settings,
+                sample_storage=storage,
+                metadata_repository=repository,
+            )
+            .run(sample_id)
+            .reverse_analysis
+        )
         sample = repository.get(sample_id)
         assert sample is not None
         without_behavior = build_ml_feature_vector(

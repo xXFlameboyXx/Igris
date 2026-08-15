@@ -19,4 +19,3 @@ class WorkerQueue(ABC):
     @abstractmethod
     async def enqueue(self, work_item: WorkItem) -> None:
         """Queue work without executing analysis in the API process."""
-

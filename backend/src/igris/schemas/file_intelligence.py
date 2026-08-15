@@ -6,10 +6,13 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from igris.schemas.assessment import ExplainableAssessment
 from igris.schemas.behavior_analysis import BehaviorAnalysisResult
 from igris.schemas.detection import DetectionResult
+from igris.schemas.investigation import AnalystNote, Bookmark
 from igris.schemas.ml import MLPrediction
 from igris.schemas.reverse_analysis import ReverseAnalysisResult
+from igris.schemas.similarity import SimilarityReport
 from igris.schemas.static_analysis import StaticAnalysisResult
 from igris.schemas.threat_intelligence import ThreatAssessment
 
@@ -241,6 +244,10 @@ class Sample(BaseModel):
     threat_assessment: ThreatAssessment | None = None
     ml_prediction: MLPrediction | None = None
     behavior_analysis: BehaviorAnalysisResult | None = None
+    similarity_analysis: SimilarityReport | None = None
+    malware_assessment: ExplainableAssessment | None = None
+    bookmarks: list[Bookmark] = Field(default_factory=list)
+    notes: list[AnalystNote] = Field(default_factory=list)
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 

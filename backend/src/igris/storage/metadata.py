@@ -28,6 +28,10 @@ class SampleMetadataRepository(ABC):
     def get_by_sha256(self, sha256: str) -> Sample | None:
         """Return a sample by canonical SHA-256."""
 
+    @abstractmethod
+    def list_all(self) -> list[Sample]:
+        """Return all stored samples."""
+
 
 class InMemorySampleMetadataRepository(SampleMetadataRepository):
     """In-memory repository for tests."""
@@ -46,6 +50,9 @@ class InMemorySampleMetadataRepository(SampleMetadataRepository):
             if sample.hashes.sha256 == sha256:
                 return sample
         return None
+
+    def list_all(self) -> list[Sample]:
+        return list(self._samples.values())
 
 
 class JsonSampleMetadataRepository(SampleMetadataRepository):
@@ -79,6 +86,10 @@ class JsonSampleMetadataRepository(SampleMetadataRepository):
                 if sample.hashes.sha256 == sha256:
                     return sample
         return None
+
+    def list_all(self) -> list[Sample]:
+        with self._lock:
+            return list(self._load().values())
 
     def _load(self) -> dict[str, Sample]:
         if not self.path.exists():
@@ -130,6 +141,11 @@ class PostgresSampleMetadataRepository(SampleMetadataRepository):
             return None
         return self._row_to_sample(row[0])
 
+    def list_all(self) -> list[Sample]:
+        with self._connect() as connection:
+            rows = connection.execute("SELECT metadata FROM samples ORDER BY created_at").fetchall()
+        return [self._row_to_sample(row[0]) for row in rows]
+
     def _ensure_schema(self) -> None:
         with self._connect() as connection:
             connection.execute(
@@ -142,9 +158,7 @@ class PostgresSampleMetadataRepository(SampleMetadataRepository):
                 )
                 """
             )
-            connection.execute(
-                "CREATE INDEX IF NOT EXISTS idx_samples_sha256 ON samples (sha256)"
-            )
+            connection.execute("CREATE INDEX IF NOT EXISTS idx_samples_sha256 ON samples (sha256)")
 
     def _connect(self) -> Any:
         import psycopg

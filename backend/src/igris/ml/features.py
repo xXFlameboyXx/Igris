@@ -99,10 +99,14 @@ def build_ml_feature_vector(
         counts=static_analysis.feature_vector.evidence_counts,
     )
 
-    if feature_set in {
-        MLFeatureSet.STATIC_REVERSE,
-        MLFeatureSet.STATIC_FUTURE_BEHAVIOR,
-    } and reverse_analysis is not None:
+    if (
+        feature_set
+        in {
+            MLFeatureSet.STATIC_REVERSE,
+            MLFeatureSet.STATIC_FUTURE_BEHAVIOR,
+        }
+        and reverse_analysis is not None
+    ):
         complexities = [item.cyclomatic_complexity for item in reverse_analysis.functions]
         features["reverse.function_count"] = float(len(reverse_analysis.functions))
         features["reverse.instruction_count"] = float(

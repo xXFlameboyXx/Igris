@@ -33,6 +33,8 @@ class StaticAnalysisService:
         path = self.sample_storage.resolve(sample.storage_ref)
         analysis = analyze_static(sample, path, self.settings)
         sample.static_analysis = analysis
+        sample.similarity_analysis = None
+        sample.malware_assessment = None
         sample.updated_at = datetime.now(UTC)
         self.metadata_repository.upsert(sample)
         return StaticAnalysisResponse(analysis=analysis)

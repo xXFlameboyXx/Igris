@@ -56,6 +56,8 @@ class BehaviorAnalysisService:
         sample.detection = None
         sample.threat_assessment = None
         sample.ml_prediction = None
+        sample.similarity_analysis = None
+        sample.malware_assessment = None
         sample.updated_at = datetime.now(UTC)
         self.metadata_repository.upsert(sample)
         return BehaviorAnalysisResponse(behavior_analysis=result)

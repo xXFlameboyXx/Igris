@@ -26,4 +26,3 @@ def test_invalid_upload_limit_fails_validation() -> None:
 def test_empty_request_id_header_fails_validation() -> None:
     with pytest.raises(ValidationError):
         Settings(request_id_header=" ")
-

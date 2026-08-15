@@ -180,7 +180,7 @@ def test_rule_engine_loads_reloadable_declarative_rules(tmp_path: Path) -> None:
 
 def test_invalid_rule_file_fails_closed(tmp_path: Path) -> None:
     rules_path = tmp_path / "rules.json"
-    rules_path.write_text("[{\"rule_id\": \"missing-fields\"}]", encoding="utf-8")
+    rules_path.write_text('[{"rule_id": "missing-fields"}]', encoding="utf-8")
 
     try:
         RuleEngine.from_path(rules_path)
