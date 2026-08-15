@@ -48,6 +48,7 @@ class Settings(BaseSettings):
     request_id_header: str = "X-Request-ID"
     trusted_proxy_headers: bool = False
     sandbox_timeout_seconds: int = Field(default=120, ge=1, le=600)
+    frontend_dist_dir: str = "frontend/dist"
 
     @field_validator("request_id_header")
     @classmethod

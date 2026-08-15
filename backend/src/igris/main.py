@@ -2,10 +2,13 @@
 
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
+from fastapi.responses import FileResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.staticfiles import StaticFiles
 
 from igris import __version__
 from igris.api.v1.health import router as health_router
@@ -75,6 +78,39 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     app.include_router(api_v1_router, prefix="/api/v1")
     app.include_router(health_router)
+
+    if resolved_settings.environment != "test":
+        dist_path = Path(resolved_settings.frontend_dist_dir)
+        if not dist_path.is_absolute():
+            for candidate in [
+                Path.cwd() / dist_path,
+                Path(__file__).resolve().parents[3] / dist_path,
+            ]:
+                if candidate.is_dir() and (candidate / "index.html").is_file():
+                    dist_path = candidate
+                    break
+
+        if dist_path.is_dir() and (dist_path / "index.html").is_file():
+            assets_dir = dist_path / "assets"
+            if assets_dir.is_dir():
+                app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="frontend_assets")
+
+            @app.get("/{full_path:path}", include_in_schema=False)
+            async def serve_spa(full_path: str) -> FileResponse:
+                if (
+                    full_path.startswith("api/")
+                    or full_path.startswith("api")
+                    or full_path.startswith("health")
+                    or full_path.startswith("docs")
+                    or full_path.startswith("redoc")
+                    or full_path.startswith("openapi")
+                ):
+                    raise StarletteHTTPException(status_code=404, detail="Not Found")
+
+                target_file = dist_path / full_path
+                if full_path and target_file.is_file():
+                    return FileResponse(target_file)
+                return FileResponse(dist_path / "index.html")
 
     return app
 
