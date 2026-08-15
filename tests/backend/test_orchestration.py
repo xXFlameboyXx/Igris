@@ -4,7 +4,6 @@ from io import BytesIO
 from pathlib import Path
 
 from fastapi.testclient import TestClient
-from tests.backend.fixtures import static_suspicious_pe_fixture
 
 from igris.core.config import Settings
 from igris.main import create_app
@@ -16,6 +15,8 @@ from igris.schemas.orchestration import (
     PipelineStageName,
     StageStatus,
 )
+
+from .fixtures import static_suspicious_pe_fixture
 
 
 def make_client(tmp_path: Path) -> TestClient:
