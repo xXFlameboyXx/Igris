@@ -35,7 +35,7 @@ export function AttackMatrixView({
   }, [techniques, selectedTactic]);
 
   if (!sample) {
-    return <EmptyState title="No Sample Selected" message="Select a sample to inspect ATT&CK mappings." />;
+    return <EmptyState icon="🎯" title="No Specimen Selected" message="Upload or select a specimen from the top bar to inspect ATT&CK mappings." />;
   }
 
   if (!threat) {

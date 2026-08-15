@@ -308,3 +308,11 @@ class FileInfoResponse(BaseModel):
     imports: list[ImportMetadata]
     exports: list[ExportMetadata]
     resources: list[ResourceMetadata]
+
+
+class SampleListResponse(BaseModel):
+    """List of ingested samples."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    samples: list[SampleResponse]

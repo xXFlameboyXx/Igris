@@ -95,6 +95,10 @@ class FileIntelligenceService:
         finally:
             await upload.close()
 
+    def list_samples(self) -> list[SampleResponse]:
+        samples = self.metadata_repository.list_all()
+        return [SampleResponse.from_sample(s) for s in samples]
+
     def get_sample(self, sample_id: str) -> SampleResponse:
         sample = self.metadata_repository.get(sample_id)
         if sample is None:

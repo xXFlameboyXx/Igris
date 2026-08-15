@@ -52,7 +52,7 @@ export function EvidenceExplorerView({
   }, [allItems, selectedCategory, selectedRole, selectedLevel, selectedStrength]);
 
   if (!sample) {
-    return <EmptyState title="No Sample Selected" message="Select a sample to explore aggregated evidence." />;
+    return <EmptyState icon="🔎" title="No Specimen Selected" message="Upload or select a specimen from the top bar to explore aggregated evidence." />;
   }
 
   if (!assessment) {

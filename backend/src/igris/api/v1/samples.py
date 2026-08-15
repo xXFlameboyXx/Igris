@@ -26,7 +26,12 @@ from igris.schemas.behavior_analysis import (
     BehaviorEvidenceResponse,
 )
 from igris.schemas.detection import DetectionResponse
-from igris.schemas.file_intelligence import FileInfoResponse, SampleCreateResponse, SampleResponse
+from igris.schemas.file_intelligence import (
+    FileInfoResponse,
+    SampleCreateResponse,
+    SampleListResponse,
+    SampleResponse,
+)
 from igris.schemas.investigation import (
     BookmarkCreateRequest,
     BookmarkResponse,
@@ -58,6 +63,14 @@ from igris.schemas.threat_intelligence import (
 )
 
 router = APIRouter()
+
+
+@router.get("", response_model=SampleListResponse)
+async def list_samples(request: Request) -> SampleListResponse:
+    """Return all stored sample metadata records."""
+
+    service = _service_from_request(request)
+    return SampleListResponse(samples=service.list_samples())
 
 
 @router.post("", response_model=SampleCreateResponse, status_code=status.HTTP_201_CREATED)

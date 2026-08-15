@@ -532,6 +532,10 @@ export interface SampleResponse {
   sample: Sample;
 }
 
+export interface SampleListResponse {
+  samples: Sample[];
+}
+
 export interface FileInfoResponse {
   sample_id: string;
   file_metadata: FileMetadata;

@@ -164,3 +164,24 @@ def test_invalid_request_without_file_returns_validation_error(tmp_path: Path) -
 def test_path_traversal_filename_is_sanitized() -> None:
     assert sanitize_filename("..\\..\\secret.exe") == "secret.exe"
     assert sanitize_filename("../../secret.exe") == "secret.exe"
+
+
+def test_list_samples_empty_and_populated(tmp_path: Path) -> None:
+    with make_client(tmp_path) as client:
+        # 1. Fresh database returns empty list
+        res_empty = client.get("/api/v1/samples")
+        assert res_empty.status_code == 200
+        assert res_empty.json() == {"samples": []}
+
+        # 2. Upload samples
+        s1 = upload(client, b"sample 1 content", "binary1.exe")
+        s2 = upload(client, b"sample 2 content", "binary2.elf")
+
+        # 3. Listing returns both samples
+        res_populated = client.get("/api/v1/samples")
+        assert res_populated.status_code == 200
+        samples = res_populated.json()["samples"]
+        assert len(samples) == 2
+        ids = {s["sample_id"] for s in samples}
+        assert s1 in ids
+        assert s2 in ids

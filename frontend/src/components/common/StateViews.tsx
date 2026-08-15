@@ -50,16 +50,19 @@ export function EmptyState({
   title = "No Data Available",
   message = "No records matching the current filter criteria were found.",
   icon = "📭",
+  action,
 }: {
   title?: string;
   message?: string;
   icon?: string;
+  action?: React.ReactNode;
 }) {
   return (
     <div className="state-view empty-state" role="status">
       <div className="state-icon" aria-hidden="true">{icon}</div>
       <h3>{title}</h3>
       <p className="state-desc">{message}</p>
+      {action && <div className="state-action" style={{ marginTop: "1rem" }}>{action}</div>}
     </div>
   );
 }

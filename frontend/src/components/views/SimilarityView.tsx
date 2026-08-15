@@ -18,7 +18,7 @@ export function SimilarityView({
   const [selectedMatch, setSelectedMatch] = useState<SimilarityMatch | null>(null);
 
   if (!sample) {
-    return <EmptyState title="No Sample Selected" message="Select a sample to inspect similarity cluster analysis." />;
+    return <EmptyState icon="🧬" title="No Specimen Selected" message="Upload or select a specimen from the top bar to inspect similarity cluster analysis." />;
   }
 
   const similarity = sample.similarity_analysis;

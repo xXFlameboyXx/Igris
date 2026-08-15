@@ -18,7 +18,7 @@ export function StaticAnalysisView({
   const [activeSubtab, setActiveSubtab] = useState<"sections" | "imports" | "strings" | "indicators">("sections");
 
   if (!sample) {
-    return <EmptyState title="No Sample Selected" message="Select a sample to inspect static analysis data." />;
+    return <EmptyState icon="📑" title="No Specimen Selected" message="Upload or select a specimen from the top bar to inspect static analysis data." />;
   }
 
   const staticAnalysis = sample.static_analysis;

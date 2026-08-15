@@ -17,7 +17,7 @@ export function InvestigationReportView({ sample }: InvestigationReportViewProps
   const [copySuccess, setCopySuccess] = useState(false);
 
   if (!sample) {
-    return <EmptyState title="No Sample Selected" message="Select a sample to view its full investigation report." />;
+    return <EmptyState icon="📝" title="No Specimen Selected" message="Upload or select a specimen from the top bar to view its full investigation report." />;
   }
 
   const assessment = sample.malware_assessment;

@@ -191,7 +191,7 @@ export function BehavioralView({
   }, [behavior]);
 
   if (!sample) {
-    return <EmptyState title="No Sample Selected" message="Select a sample to inspect behavioral telemetry." />;
+    return <EmptyState icon="🏃" title="No Specimen Selected" message="Upload or select a specimen from the top bar to inspect behavioral telemetry." />;
   }
 
   if (!behavior) {

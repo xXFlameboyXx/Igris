@@ -14,7 +14,7 @@ export function MLClassifierView({
   isRunning = false,
 }: MLClassifierViewProps) {
   if (!sample) {
-    return <EmptyState title="No Sample Selected" message="Select a sample to inspect ML classifier predictions." />;
+    return <EmptyState icon="🤖" title="No Specimen Selected" message="Upload or select a specimen from the top bar to inspect ML classifier predictions." />;
   }
 
   const ml = sample.ml_prediction;

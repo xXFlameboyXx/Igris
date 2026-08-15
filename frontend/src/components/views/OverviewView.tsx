@@ -15,6 +15,7 @@ interface OverviewViewProps {
   onNavigateTab: (tab: InvestigationTab) => void;
   onRunAnalysis: (layer: string) => Promise<void>;
   runningLayers: Record<string, boolean>;
+  onOpenUpload?: () => void;
 }
 
 export function OverviewView({
@@ -22,9 +23,27 @@ export function OverviewView({
   onNavigateTab,
   onRunAnalysis,
   runningLayers,
+  onOpenUpload,
 }: OverviewViewProps) {
   if (!sample) {
-    return <EmptyState title="No Sample Selected" message="Please upload a binary or select a demo sample from the top bar." />;
+    return (
+      <EmptyState
+        icon="🛡️"
+        title="No Specimens Available"
+        message="No binary specimens have been ingested for analysis yet. Upload an executable (PE or ELF) to begin automated static, reverse, behavioral, and threat-intelligence inspection."
+        action={
+          onOpenUpload ? (
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={onOpenUpload}
+            >
+              ⬆ Upload Specimen
+            </button>
+          ) : undefined
+        }
+      />
+    );
   }
 
   const assessment = sample.malware_assessment;

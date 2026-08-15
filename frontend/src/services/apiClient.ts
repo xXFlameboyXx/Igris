@@ -36,6 +36,7 @@ import type {
   ReportCreateResponse,
   ReverseAnalysisResponse,
   SampleCreateResponse,
+  SampleListResponse,
   SampleResponse,
   SimilarityResponse,
   SimilarityResultsResponse,
@@ -107,6 +108,14 @@ export const apiClient = {
   // --------------------------------------------------------------------------
   // Sample Lifecycle & Metadata
   // --------------------------------------------------------------------------
+  async listSamples(signal?: AbortSignal): Promise<SampleListResponse> {
+    const res = await fetch("/api/v1/samples", {
+      headers: { Accept: "application/json" },
+      signal,
+    });
+    return handleResponse<SampleListResponse>(res);
+  },
+
   async uploadSample(file: File, signal?: AbortSignal): Promise<SampleCreateResponse> {
     const formData = new FormData();
     formData.append("file", file);

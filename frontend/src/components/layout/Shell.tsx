@@ -1,10 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { apiClient } from "../../services/apiClient";
-import {
-  DEMO_CFG_INJECT,
-  DEMO_MALICIOUS_SAMPLE,
-  DEMO_SAMPLES_LIST,
-} from "../../services/syntheticDemoData";
 import type {
   AnalystNote,
   AssessmentEvidenceItem,
@@ -40,17 +35,19 @@ import { Sidebar } from "./Sidebar";
 
 export function Shell() {
   const [activeTab, setActiveTab] = useState<InvestigationTab>("overview");
-  const [isSyntheticMode, setIsSyntheticMode] = useState<boolean>(true);
-  const [currentSample, setCurrentSample] = useState<Sample | null>(DEMO_MALICIOUS_SAMPLE);
+  const [isSyntheticMode, setIsSyntheticMode] = useState<boolean>(false);
+  const [currentSample, setCurrentSample] = useState<Sample | null>(null);
+  const [samplesList, setSamplesList] = useState<Sample[]>([]);
   const [health, setHealth] = useState<HealthResponse | null>(null);
   const [runningLayers, setRunningLayers] = useState<Record<string, boolean>>({});
   const [statusNotification, setStatusNotification] = useState<string | null>(null);
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
 
   // Investigation Workspace State: Bookmarks & Analyst Notes
   const [isBookmarksOpen, setIsBookmarksOpen] = useState(false);
   const [isNotesOpen, setIsNotesOpen] = useState(false);
-  const [bookmarks, setBookmarks] = useState<Bookmark[]>(DEMO_MALICIOUS_SAMPLE.bookmarks || []);
-  const [notes, setNotes] = useState<AnalystNote[]>(DEMO_MALICIOUS_SAMPLE.notes || []);
+  const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
+  const [notes, setNotes] = useState<AnalystNote[]>([]);
 
   // Synchronize bookmarks and notes whenever active sample changes
   useEffect(() => {
@@ -66,7 +63,6 @@ export function Shell() {
       return;
     }
 
-    // In live mode, fetch from backend endpoints
     const controller = new AbortController();
     Promise.all([
       apiClient.listBookmarks(currentSample.sample_id, controller.signal).catch(() => ({ sample_id: currentSample.sample_id, bookmarks: [] })),
@@ -79,9 +75,11 @@ export function Shell() {
     return () => controller.abort();
   }, [currentSample, isSyntheticMode]);
 
-  // Poll system health once on mount
+  // Load initial samples list and system health on mount
   useEffect(() => {
     const controller = new AbortController();
+
+    // 1. Check system health
     apiClient
       .getHealth(controller.signal)
       .then((res) => setHealth(res))
@@ -95,6 +93,26 @@ export function Shell() {
         });
       });
 
+    // 2. Fetch ingested samples from live API
+    apiClient
+      .listSamples(controller.signal)
+      .then((res) => {
+        const list = res.samples || [];
+        setSamplesList(list);
+        if (list.length > 0) {
+          apiClient
+            .getSample(list[0].sample_id, controller.signal)
+            .then((full) => setCurrentSample(full.sample))
+            .catch(() => setCurrentSample(list[0]));
+        } else {
+          setCurrentSample(null);
+        }
+      })
+      .catch(() => {
+        setSamplesList([]);
+        setCurrentSample(null);
+      });
+
     return () => controller.abort();
   }, []);
 
@@ -104,24 +122,15 @@ export function Shell() {
   };
 
   const handleSelectSampleId = async (sampleId: string) => {
-    // Check if in demo samples list
-    const demo = DEMO_SAMPLES_LIST.find((s) => s.sample_id === sampleId);
-    if (demo) {
-      setCurrentSample(demo);
-      setIsSyntheticMode(true);
-      notify(`Loaded demonstration scenario: ${demo.original_filename}`);
-      return;
-    }
-
-    // Otherwise fetch from live API
+    if (!sampleId) return;
     try {
-      notify(`Loading sample ${sampleId} from API...`);
+      notify(`Loading specimen ${sampleId.slice(0, 8)}...`);
       const res = await apiClient.getSample(sampleId);
       setCurrentSample(res.sample);
       setIsSyntheticMode(false);
-      notify(`Loaded sample: ${res.sample.original_filename}`);
+      notify(`Loaded specimen: ${res.sample.original_filename}`);
     } catch (err) {
-      notify(`Failed to load sample: ${err instanceof Error ? err.message : String(err)}`);
+      notify(`Failed to load specimen: ${err instanceof Error ? err.message : String(err)}`);
     }
   };
 
@@ -129,13 +138,26 @@ export function Shell() {
     try {
       notify(`Uploading ${file.name}...`);
       const created = await apiClient.uploadSample(file);
-      notify(`Sample uploaded successfully (ID: ${created.sample_id}). Ingesting metadata...`);
+      notify(`Specimen uploaded successfully (${created.sample_id.slice(0, 8)}). Initializing pipeline...`);
 
-      // Fetch full sample record
-      const full = await apiClient.getSample(created.sample_id);
-      setCurrentSample(full.sample);
+      // Optionally start automated orchestration pipeline
+      try {
+        await apiClient.startAnalysis({ sample_id: created.sample_id });
+      } catch {
+        // Continue if pipeline was queued
+      }
+
+      // Fetch updated samples list and the newly uploaded sample
+      const [listRes, fullRes] = await Promise.all([
+        apiClient.listSamples().catch(() => ({ samples: [] })),
+        apiClient.getSample(created.sample_id),
+      ]);
+
+      setSamplesList(listRes.samples || []);
+      setCurrentSample(fullRes.sample);
       setIsSyntheticMode(false);
       setActiveTab("overview");
+      notify(`Loaded specimen: ${fullRes.sample.original_filename}`);
     } catch (err) {
       notify(`Upload error: ${err instanceof Error ? err.message : String(err)}`);
       throw err;
@@ -149,11 +171,9 @@ export function Shell() {
 
     try {
       if (isSyntheticMode) {
-        // Simulate completion in synthetic mode
         await new Promise((resolve) => setTimeout(resolve, 800));
         notify(`Completed ${layer} analysis on demonstration sample.`);
       } else {
-        // Real API invocation
         const sId = currentSample.sample_id;
         switch (layer) {
           case "static":
@@ -176,42 +196,40 @@ export function Shell() {
             break;
         }
 
-        // Refresh sample state
         const refreshed = await apiClient.getSample(sId);
         setCurrentSample(refreshed.sample);
         notify(`Completed ${layer} analysis successfully.`);
       }
     } catch (err) {
-      notify(`Error running ${layer}: ${err instanceof Error ? err.message : String(err)}`);
+      notify(`Analysis error (${layer}): ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setRunningLayers((prev) => ({ ...prev, [layer]: false }));
     }
   };
 
-  const handleCreateBookmark = async (data: BookmarkCreateRequest) => {
+  const handleCreateBookmark = async (req: BookmarkCreateRequest) => {
     if (!currentSample) return;
-    if (isSyntheticMode) {
-      const newBmk: Bookmark = {
-        bookmark_id: `bmk-synth-${Date.now()}`,
-        sample_id: currentSample.sample_id,
-        target_type: data.target_type,
-        target_id: data.target_id,
-        title: data.title,
-        description: data.description,
-        category: data.category,
-        created_at: new Date().toISOString(),
-      };
-      const updated = [newBmk, ...bookmarks];
-      setBookmarks(updated);
-      setCurrentSample({ ...currentSample, bookmarks: updated });
-      notify(`Created bookmark: ${data.title}`);
-      return;
-    }
-
     try {
-      const res = await apiClient.createBookmark(currentSample.sample_id, data);
-      setBookmarks([res.bookmark, ...bookmarks]);
-      notify(`Created bookmark: ${data.title}`);
+      if (isSyntheticMode) {
+        const syntheticBookmark: Bookmark = {
+          bookmark_id: `bmk-local-${Date.now()}`,
+          sample_id: currentSample.sample_id,
+          target_type: req.target_type,
+          target_id: req.target_id,
+          title: req.title,
+          description: req.description,
+          category: req.category,
+          metadata: req.metadata,
+          created_at: new Date().toISOString(),
+        };
+        setBookmarks((prev) => [syntheticBookmark, ...prev]);
+        notify(`Bookmarked ${req.title}`);
+        return;
+      }
+
+      const res = await apiClient.createBookmark(currentSample.sample_id, req);
+      setBookmarks((prev) => [res.bookmark, ...prev]);
+      notify(`Bookmarked ${req.title}`);
     } catch (err) {
       notify(`Failed to create bookmark: ${err instanceof Error ? err.message : String(err)}`);
     }
@@ -219,81 +237,76 @@ export function Shell() {
 
   const handleDeleteBookmark = async (bookmarkId: string) => {
     if (!currentSample) return;
-    if (isSyntheticMode) {
-      const updated = bookmarks.filter((b) => b.bookmark_id !== bookmarkId);
-      setBookmarks(updated);
-      setCurrentSample({ ...currentSample, bookmarks: updated });
-      notify("Deleted bookmark.");
-      return;
-    }
-
     try {
+      if (isSyntheticMode) {
+        setBookmarks((prev) => prev.filter((b) => b.bookmark_id !== bookmarkId));
+        notify("Bookmark deleted.");
+        return;
+      }
+
       await apiClient.deleteBookmark(currentSample.sample_id, bookmarkId);
-      setBookmarks(bookmarks.filter((b) => b.bookmark_id !== bookmarkId));
-      notify("Deleted bookmark.");
+      setBookmarks((prev) => prev.filter((b) => b.bookmark_id !== bookmarkId));
+      notify("Bookmark deleted.");
     } catch (err) {
       notify(`Failed to delete bookmark: ${err instanceof Error ? err.message : String(err)}`);
     }
   };
 
-  const handleCreateNote = async (data: NoteCreateRequest) => {
+  const handleCreateNote = async (req: NoteCreateRequest) => {
     if (!currentSample) return;
-    if (isSyntheticMode) {
-      const newNote: AnalystNote = {
-        note_id: `note-synth-${Date.now()}`,
-        sample_id: currentSample.sample_id,
-        author: data.author || "Analyst",
-        title: data.title,
-        content: data.content,
-        attached_evidence_ids: data.attached_evidence_ids || [],
-        attached_bookmark_ids: data.attached_bookmark_ids || [],
-        tags: data.tags || [],
-        created_at: new Date().toISOString(),
-      };
-      const updated = [newNote, ...notes];
-      setNotes(updated);
-      setCurrentSample({ ...currentSample, notes: updated });
-      notify(`Created analyst note: ${data.title}`);
-      return;
-    }
-
     try {
-      const res = await apiClient.createNote(currentSample.sample_id, data);
-      setNotes([res.note, ...notes]);
-      notify(`Created analyst note: ${data.title}`);
+      if (isSyntheticMode) {
+        const syntheticNote: AnalystNote = {
+          note_id: `note-local-${Date.now()}`,
+          sample_id: currentSample.sample_id,
+          author: req.author || "Analyst",
+          title: req.title,
+          content: req.content,
+          tags: req.tags || [],
+          attached_evidence_ids: req.attached_evidence_ids || [],
+          attached_bookmark_ids: req.attached_bookmark_ids || [],
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        setNotes((prev) => [syntheticNote, ...prev]);
+        notify(`Created note: ${req.title}`);
+        return;
+      }
+
+      const res = await apiClient.createNote(currentSample.sample_id, req);
+      setNotes((prev) => [res.note, ...prev]);
+      notify(`Created note: ${req.title}`);
     } catch (err) {
       notify(`Failed to create note: ${err instanceof Error ? err.message : String(err)}`);
     }
   };
 
-  const handleUpdateNote = async (noteId: string, data: NoteUpdateRequest) => {
+  const handleUpdateNote = async (noteId: string, req: NoteUpdateRequest) => {
     if (!currentSample) return;
-    if (isSyntheticMode) {
-      const updated = notes.map((n) =>
-        n.note_id === noteId
-          ? {
-              ...n,
-              title: data.title !== undefined ? data.title : n.title,
-              content: data.content !== undefined ? data.content : n.content,
-              attached_evidence_ids:
-                data.attached_evidence_ids !== undefined
-                  ? data.attached_evidence_ids
-                  : n.attached_evidence_ids,
-              tags: data.tags !== undefined ? data.tags : n.tags,
-              updated_at: new Date().toISOString(),
-            }
-          : n
-      );
-      setNotes(updated);
-      setCurrentSample({ ...currentSample, notes: updated });
-      notify("Updated analyst note.");
-      return;
-    }
-
     try {
-      const res = await apiClient.updateNote(currentSample.sample_id, noteId, data);
-      setNotes(notes.map((n) => (n.note_id === noteId ? res.note : n)));
-      notify("Updated analyst note.");
+      if (isSyntheticMode) {
+        setNotes((prev) =>
+          prev.map((n) =>
+            n.note_id === noteId
+              ? {
+                  ...n,
+                  title: req.title || n.title,
+                  content: req.content || n.content,
+                  tags: req.tags || n.tags,
+                  attached_evidence_ids: req.attached_evidence_ids || n.attached_evidence_ids,
+                  attached_bookmark_ids: req.attached_bookmark_ids || n.attached_bookmark_ids,
+                  updated_at: new Date().toISOString(),
+                }
+              : n
+          )
+        );
+        notify("Note updated.");
+        return;
+      }
+
+      const res = await apiClient.updateNote(currentSample.sample_id, noteId, req);
+      setNotes((prev) => prev.map((n) => (n.note_id === noteId ? res.note : n)));
+      notify("Note updated.");
     } catch (err) {
       notify(`Failed to update note: ${err instanceof Error ? err.message : String(err)}`);
     }
@@ -301,42 +314,45 @@ export function Shell() {
 
   const handleDeleteNote = async (noteId: string) => {
     if (!currentSample) return;
-    if (isSyntheticMode) {
-      const updated = notes.filter((n) => n.note_id !== noteId);
-      setNotes(updated);
-      setCurrentSample({ ...currentSample, notes: updated });
-      notify("Deleted analyst note.");
-      return;
-    }
-
     try {
+      if (isSyntheticMode) {
+        setNotes((prev) => prev.filter((n) => n.note_id !== noteId));
+        notify("Note deleted.");
+        return;
+      }
+
       await apiClient.deleteNote(currentSample.sample_id, noteId);
-      setNotes(notes.filter((n) => n.note_id !== noteId));
-      notify("Deleted analyst note.");
+      setNotes((prev) => prev.filter((n) => n.note_id !== noteId));
+      notify("Note deleted.");
     } catch (err) {
       notify(`Failed to delete note: ${err instanceof Error ? err.message : String(err)}`);
     }
   };
 
-  const handleBookmarkEvidenceItem = async (item: AssessmentEvidenceItem) => {
-    await handleCreateBookmark({
+  const handleBookmarkEvidenceItem = (item: AssessmentEvidenceItem) => {
+    handleCreateBookmark({
       target_type: "evidence",
       target_id: item.evidence_id,
-      title: `Finding: ${item.statement.slice(0, 50)}…`,
-      description: item.statement,
+      title: item.statement.slice(0, 48),
+      description: `Observed at level ${item.observation_level} with role ${item.role}`,
       category: item.category,
     });
   };
 
-  const handleAddNoteForEvidenceItem = () => {
+  const handleAddNoteForEvidenceItem = (item: AssessmentEvidenceItem) => {
     setIsNotesOpen(true);
+    handleCreateNote({
+      author: "Analyst",
+      title: `Finding: ${item.statement.slice(0, 40)}`,
+      content: `Evidence Item ID: ${item.evidence_id}\nCategory: ${item.category}\nRole: ${item.role}\nObservation Level: ${item.observation_level}\n\nAnalyst Assessment:`,
+      tags: [item.category, item.role.toLowerCase()],
+      attached_evidence_ids: [item.evidence_id],
+      attached_bookmark_ids: [],
+    });
   };
 
   const handleFetchCFG = async (functionId: string): Promise<ControlFlowGraph | null> => {
     if (!currentSample) return null;
-    if (isSyntheticMode) {
-      return DEMO_CFG_INJECT;
-    }
     try {
       const res = await apiClient.getCFG(currentSample.sample_id, functionId);
       return res.cfg;
@@ -349,24 +365,16 @@ export function Shell() {
     <div className="analyst-console-shell">
       <Header
         currentSample={currentSample}
+        samplesList={samplesList}
         onSelectSampleId={handleSelectSampleId}
         onUploadSample={handleUploadSample}
-        isSyntheticMode={isSyntheticMode}
-        onToggleSyntheticMode={() => {
-          setIsSyntheticMode(!isSyntheticMode);
-          if (!isSyntheticMode) {
-            setCurrentSample(DEMO_MALICIOUS_SAMPLE);
-            notify("Switched to Synthetic Demonstration Mode.");
-          } else {
-            notify("Switched to Live API Mode.");
-          }
-        }}
-        demoSamples={DEMO_SAMPLES_LIST}
         health={health}
         bookmarksCount={bookmarks.length}
         notesCount={notes.length}
         onOpenBookmarks={() => setIsBookmarksOpen(true)}
         onOpenNotes={() => setIsNotesOpen(true)}
+        isUploadOpen={isUploadOpen}
+        onSetIsUploadOpen={setIsUploadOpen}
       />
 
       {isSyntheticMode && <SyntheticBanner />}
@@ -404,6 +412,7 @@ export function Shell() {
               onNavigateTab={setActiveTab}
               onRunAnalysis={handleRunAnalysis}
               runningLayers={runningLayers}
+              onOpenUpload={() => setIsUploadOpen(true)}
             />
           )}
 
@@ -448,7 +457,6 @@ export function Shell() {
               onRunReverse={() => handleRunAnalysis("reverse")}
               isRunning={runningLayers.reverse}
               onFetchCFG={handleFetchCFG}
-              demoCFG={DEMO_CFG_INJECT}
             />
           )}
 

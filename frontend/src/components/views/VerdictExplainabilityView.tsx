@@ -21,7 +21,7 @@ export function VerdictExplainabilityView({
   isRunning = false,
 }: VerdictExplainabilityViewProps) {
   if (!sample) {
-    return <EmptyState title="No Sample Selected" message="Please select a sample to inspect explainable assessment." />;
+    return <EmptyState icon="⚖️" title="No Specimen Selected" message="Please upload or select a specimen to inspect explainable assessment." />;
   }
 
   const assessment = sample.malware_assessment;

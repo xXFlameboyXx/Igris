@@ -50,7 +50,7 @@ export function ReverseEngineeringView({
   }, [selectedFunction, onFetchCFG, demoCFG]);
 
   if (!sample) {
-    return <EmptyState title="No Sample Selected" message="Select a sample to inspect reverse engineering analysis." />;
+    return <EmptyState icon="⚙️" title="No Specimen Selected" message="Upload or select a specimen from the top bar to inspect reverse engineering analysis." />;
   }
 
   if (!reverse) {

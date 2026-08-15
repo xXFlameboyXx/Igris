@@ -11,7 +11,7 @@ import {
   DEMO_COMPLETE_PIPELINE_JOB,
   DEMO_PARTIAL_PIPELINE_JOB,
 } from "../../services/syntheticDemoData";
-import { LoadingState, ErrorState } from "../common/StateViews";
+import { EmptyState, LoadingState, ErrorState } from "../common/StateViews";
 
 interface AnalysisPipelineViewProps {
   sample: Sample | null;
@@ -236,6 +236,16 @@ export const AnalysisPipelineView: React.FC<AnalysisPipelineViewProps> = ({
     ? activeJob.stages.filter((s) => s.status === "FAILED").length
     : 0;
   const totalStagesCount = activeJob ? activeJob.stages.length : 11;
+
+  if (!sample) {
+    return (
+      <EmptyState
+        icon="⚡"
+        title="No Specimen Selected"
+        message="Please upload a binary specimen or select one from the top bar to inspect or trigger pipeline orchestration."
+      />
+    );
+  }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>

@@ -87,13 +87,6 @@ export function Sidebar({ activeTab, onSelectTab, sample }: SidebarProps) {
       label: "Investigation Report",
       icon: "📝",
     },
-    {
-      id: "demo",
-      label: "Synthetic Demo Lab",
-      icon: "🔬",
-      badge: "DEMO",
-      badgeClass: "badge-demo-tag",
-    },
   ];
 
   return (

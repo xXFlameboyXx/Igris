@@ -5,32 +5,35 @@ import { Modal } from "../common/Modal";
 
 interface HeaderProps {
   currentSample: Sample | null;
+  samplesList?: Sample[];
   onSelectSampleId: (sampleId: string) => void;
   onUploadSample: (file: File) => Promise<void>;
-  isSyntheticMode: boolean;
-  onToggleSyntheticMode: () => void;
-  demoSamples: Sample[];
   health: HealthResponse | null;
   bookmarksCount?: number;
   notesCount?: number;
   onOpenBookmarks?: () => void;
   onOpenNotes?: () => void;
+  isUploadOpen?: boolean;
+  onSetIsUploadOpen?: (open: boolean) => void;
 }
 
 export function Header({
   currentSample,
+  samplesList = [],
   onSelectSampleId,
   onUploadSample,
-  isSyntheticMode,
-  onToggleSyntheticMode,
-  demoSamples,
   health,
   bookmarksCount = 0,
   notesCount = 0,
   onOpenBookmarks,
   onOpenNotes,
+  isUploadOpen: externalIsUploadOpen,
+  onSetIsUploadOpen,
 }: HeaderProps) {
-  const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [internalIsUploadOpen, setInternalIsUploadOpen] = useState(false);
+  const isUploadOpen = externalIsUploadOpen !== undefined ? externalIsUploadOpen : internalIsUploadOpen;
+  const setIsUploadOpen = onSetIsUploadOpen || setInternalIsUploadOpen;
+
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [customSampleId, setCustomSampleId] = useState("");
@@ -86,14 +89,20 @@ export function Header({
               onChange={(e) => onSelectSampleId(e.target.value)}
               aria-label="Select active sample"
             >
-              <optgroup label="Synthetic Demo Scenarios">
-                {demoSamples.map((s) => (
-                  <option key={s.sample_id} value={s.sample_id}>
-                    {s.original_filename} ({s.malware_assessment?.verdict || s.status})
-                  </option>
-                ))}
-              </optgroup>
-              {currentSample && !demoSamples.some((d) => d.sample_id === currentSample.sample_id) && (
+              {samplesList.length === 0 ? (
+                <option value="" disabled>
+                  No specimens available
+                </option>
+              ) : (
+                <optgroup label="Ingested Specimens">
+                  {samplesList.map((s) => (
+                    <option key={s.sample_id} value={s.sample_id}>
+                      {s.original_filename} ({s.malware_assessment?.verdict || s.status})
+                    </option>
+                  ))}
+                </optgroup>
+              )}
+              {currentSample && !samplesList.some((d) => d.sample_id === currentSample.sample_id) && (
                 <optgroup label="Active Investigation">
                   <option value={currentSample.sample_id}>
                     {currentSample.original_filename} ({currentSample.sample_id.slice(0, 8)})
@@ -107,7 +116,7 @@ export function Header({
               className="btn btn-sm btn-primary upload-trigger-btn"
               onClick={() => setIsUploadOpen(true)}
             >
-              ⬆ Upload Binary
+              ⬆ Upload Specimen
             </button>
 
             {onOpenBookmarks && (
@@ -131,16 +140,6 @@ export function Header({
                 📝 Notes ({notesCount})
               </button>
             )}
-
-            <button
-              type="button"
-              className={`btn btn-sm ${isSyntheticMode ? "btn-accent" : "btn-outline"} demo-mode-toggle`}
-              onClick={onToggleSyntheticMode}
-              title="Toggle Demonstration / Synthetic Data Mode"
-              aria-pressed={isSyntheticMode}
-            >
-              {isSyntheticMode ? "🔬 Demo Data: ACTIVE" : "🔌 Live API Mode"}
-            </button>
           </div>
 
           {/* System Health */}
@@ -160,7 +159,7 @@ export function Header({
       {currentSample && (
         <div className="sample-context-bar" role="region" aria-label="Active sample context">
           <div className="context-item filename-context">
-            <span className="context-label">FILE:</span>
+            <span className="context-label">SPECIMEN:</span>
             <strong className="context-val">{currentSample.original_filename}</strong>
           </div>
 
@@ -192,7 +191,7 @@ export function Header({
       <Modal
         isOpen={isUploadOpen}
         onClose={() => setIsUploadOpen(false)}
-        title="Upload Sample for Investigation"
+        title="Upload Specimen for Investigation"
         footer={
           <div className="modal-actions">
             <button
@@ -208,14 +207,14 @@ export function Header({
               className="btn btn-primary"
               disabled={!selectedFile || uploading}
             >
-              {uploading ? "Ingesting Sample..." : "Start Investigation"}
+              {uploading ? "Ingesting Specimen..." : "Start Investigation"}
             </button>
           </div>
         }
       >
         <form id="upload-form" onSubmit={handleUploadSubmit} className="upload-form">
           <p className="form-help-text">
-            Upload an executable, library, or raw payload for automated static, reverse,
+            Upload an executable, library, or raw binary for automated static, reverse,
             behavioral, and explainable malware assessment.
           </p>
 
@@ -247,17 +246,17 @@ export function Header({
           )}
 
           <div className="custom-id-divider">
-            <span>OR LOOK UP EXISTING SAMPLE ID</span>
+            <span>OR LOOK UP EXISTING SPECIMEN ID</span>
           </div>
 
           <div className="custom-id-row">
             <input
               type="text"
               className="search-input"
-              placeholder="Paste Sample ID..."
+              placeholder="Paste Specimen ID..."
               value={customSampleId}
               onChange={(e) => setCustomSampleId(e.target.value)}
-              aria-label="Paste existing sample ID"
+              aria-label="Paste existing specimen ID"
             />
             <button
               type="button"
