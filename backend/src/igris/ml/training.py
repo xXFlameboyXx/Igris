@@ -153,7 +153,7 @@ def run_baseline_experiment(
         metrics=selected_result.test_metrics,
         feature_names=feature_names,
         important_features=selected_result.important_features,
-        artifact_path=str(artifact_path),
+        artifact_path=artifact_path.as_posix(),
         limitations=experiment.limitations,
     )
     return ModelRegistry(

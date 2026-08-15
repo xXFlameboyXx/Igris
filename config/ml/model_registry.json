@@ -131,7 +131,7 @@
           0.038011695906432746
         ]
       ],
-      "artifact_path": "config\\ml\\models\\synthetic-phase6-v1-random_forest-v1.joblib",
+      "artifact_path": "config/ml/models/synthetic-phase6-v1-random_forest-v1.joblib",
       "limitations": [
         "Synthetic development data is not representative of real malware prevalence.",
         "Metrics are for pipeline validation and do not establish operational performance.",

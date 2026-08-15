@@ -137,10 +137,12 @@ class AssessmentEngine:
         else:
             # Check for suspicious PE / ELF sections
             if sample.file_metadata.pe:
+                has_suspicious_sec = False
                 for sec in sample.file_metadata.pe.sections:
                     perms = (sec.permissions or "").lower()
                     is_wx = ("w" in perms or "write" in perms) and ("x" in perms or "exec" in perms)
                     if is_wx:
+                        has_suspicious_sec = True
                         evidence_items.append(
                             AssessmentEvidenceItem(
                                 evidence_id=f"ev-static-sec-{sec.name.strip()}",
@@ -164,6 +166,7 @@ class AssessmentEngine:
                             )
                         )
                     elif sec.entropy and sec.entropy > 7.2:
+                        has_suspicious_sec = True
                         evidence_items.append(
                             AssessmentEvidenceItem(
                                 evidence_id=f"ev-static-ent-{sec.name.strip()}",
@@ -183,6 +186,48 @@ class AssessmentEngine:
                                 technical_details={"entropy": sec.entropy},
                             )
                         )
+                if not has_suspicious_sec and sample.file_metadata.pe.sections:
+                    evidence_items.append(
+                        AssessmentEvidenceItem(
+                            evidence_id="ev-static-sec-normal",
+                            category=EvidenceCategory.STATIC,
+                            source="static_analysis.pe_headers",
+                            source_id="standard_sections",
+                            statement=(
+                                "Binary sections exhibit standard non-packed entropy and "
+                                "expected permission boundaries."
+                            ),
+                            evidence_type="normal_section_entropy",
+                            observation_level=ObservationLevel.OBSERVED,
+                            role=EvidenceRole.CONTRADICTING,
+                            strength=EvidenceStrength.LOW,
+                            weight=0.35,
+                            provenance="pe_header_parser",
+                        )
+                    )
+            elif sample.file_metadata.elf and sample.file_metadata.elf.sections:
+                has_suspicious_sec = any(
+                    sec.entropy and sec.entropy > 7.2 for sec in sample.file_metadata.elf.sections
+                )
+                if not has_suspicious_sec:
+                    evidence_items.append(
+                        AssessmentEvidenceItem(
+                            evidence_id="ev-static-elf-sec-normal",
+                            category=EvidenceCategory.STATIC,
+                            source="static_analysis.elf_headers",
+                            source_id="standard_sections",
+                            statement=(
+                                "ELF binary sections exhibit standard non-packed entropy and "
+                                "expected boundaries."
+                            ),
+                            evidence_type="normal_section_entropy",
+                            observation_level=ObservationLevel.OBSERVED,
+                            role=EvidenceRole.CONTRADICTING,
+                            strength=EvidenceStrength.LOW,
+                            weight=0.35,
+                            provenance="elf_header_parser",
+                        )
+                    )
 
         if sample.static_analysis is None:
             uncertainties.append(
@@ -645,6 +690,8 @@ class AssessmentEngine:
                     pts = 15.0
                 elif ev.evidence_type == "no_rule_matches":
                     pts = 10.0
+                elif ev.evidence_type == "normal_section_entropy":
+                    pts = 8.0
                 else:
                     pts = 5.0
 

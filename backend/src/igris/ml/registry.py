@@ -46,12 +46,25 @@ def get_model_metadata(registry: ModelRegistry, model_version: str | None = None
 def load_model_artifact(metadata: ModelMetadata) -> Any:
     """Load the trained model artifact referenced by metadata."""
 
+    raw_path = Path(metadata.artifact_path.replace("\\", "/"))
+    resolved_path = raw_path
+    if not resolved_path.is_file():
+        candidates = [
+            Path.cwd() / raw_path,
+            Path(__file__).resolve().parents[4] / raw_path,
+            Path(__file__).resolve().parents[3] / raw_path,
+        ]
+        for candidate in candidates:
+            if candidate.is_file():
+                resolved_path = candidate
+                break
+
     try:
-        return joblib.load(metadata.artifact_path)
+        return joblib.load(resolved_path)
     except OSError as exc:
         raise AppError(
             "ML model artifact could not be loaded",
             code="ml_model_load_failed",
             status_code=500,
-            details={"model_version": metadata.model_version, "path": metadata.artifact_path},
+            details={"model_version": metadata.model_version, "path": str(resolved_path)},
         ) from exc
