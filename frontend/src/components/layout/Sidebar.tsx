@@ -88,20 +88,6 @@ export function Sidebar({ activeTab, onSelectTab, sample }: SidebarProps) {
       icon: "📝",
     },
     {
-      id: "evaluation",
-      label: "Evaluation & Research",
-      icon: "🧪",
-      badge: "PHASE 15",
-      badgeClass: "badge-low",
-    },
-    {
-      id: "robustness",
-      label: "Robustness & Stress",
-      icon: "🛡️",
-      badge: "PHASE 16",
-      badgeClass: "badge-low",
-    },
-    {
       id: "demo",
       label: "Synthetic Demo Lab",
       icon: "🔬",
