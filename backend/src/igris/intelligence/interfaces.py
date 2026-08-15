@@ -19,4 +19,3 @@ class EvidenceCorrelator(ABC):
     @abstractmethod
     async def correlate(self, sample_id: str) -> tuple[EvidenceItem, ...]:
         """Correlate evidence for a sample."""
-

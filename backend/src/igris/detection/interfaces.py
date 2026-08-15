@@ -19,4 +19,3 @@ class DetectionEngine(ABC):
     @abstractmethod
     async def evaluate(self, sample_id: str) -> tuple[DetectionFinding, ...]:
         """Evaluate previously generated analysis evidence."""
-

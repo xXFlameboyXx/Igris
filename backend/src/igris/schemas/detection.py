@@ -5,6 +5,7 @@ from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from igris.schemas.behavior_analysis import BehaviorEvidence
 from igris.schemas.static_analysis import EvidenceSeverity, StaticEvidence
 
 
@@ -125,6 +126,7 @@ class DetectionResult(BaseModel):
     triggered_rules: list[TriggeredRule]
     heuristics: list[HeuristicFinding]
     evidence: list[StaticEvidence]
+    behavior_evidence: list[BehaviorEvidence] = Field(default_factory=list)
     severity: EvidenceSeverity
     confidence: float = Field(ge=0.0, le=1.0)
     explanation: str

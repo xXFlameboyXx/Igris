@@ -7,4 +7,3 @@ class BehavioralAnalyzer(Analyzer):
     """Future interface for sandbox-only behavioral analysis."""
 
     kind = "behavioral"
-

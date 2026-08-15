@@ -2,6 +2,7 @@
 
 from statistics import mean
 
+from igris.schemas.behavior_analysis import BehaviorEvidence
 from igris.schemas.detection import (
     DetectionStatus,
     HeuristicFinding,
@@ -24,7 +25,9 @@ def score_detection(
     rules: list[TriggeredRule],
     heuristics: list[HeuristicFinding],
     evidence: list[StaticEvidence],
+    behavior_evidence: list[BehaviorEvidence] | None = None,
 ) -> tuple[float, ScoreBreakdown]:
+    behavior_evidence = behavior_evidence or []
     rule_contributions = [
         ScoreContribution(
             source="rule",
@@ -56,6 +59,17 @@ def score_detection(
         for item in evidence
         if item.severity != EvidenceSeverity.INFO
     ]
+    evidence_contributions.extend(
+        ScoreContribution(
+            source="behavior_evidence",
+            label=str(item.type),
+            contribution=round(SEVERITY_POINTS[item.severity] * item.confidence, 3),
+            confidence=item.confidence,
+            rationale=item.description,
+        )
+        for item in behavior_evidence
+        if item.severity != EvidenceSeverity.INFO
+    )
     total = sum(item.contribution for item in rule_contributions)
     total += sum(item.contribution for item in heuristic_contributions)
     total += min(1.5, sum(item.contribution for item in evidence_contributions))
@@ -89,11 +103,16 @@ def severity_from_score(score: float) -> EvidenceSeverity:
 
 
 def confidence_from_inputs(
-    rules: list[TriggeredRule], heuristics: list[HeuristicFinding], evidence: list[StaticEvidence]
+    rules: list[TriggeredRule],
+    heuristics: list[HeuristicFinding],
+    evidence: list[StaticEvidence],
+    behavior_evidence: list[BehaviorEvidence] | None = None,
 ) -> float:
     values = [item.confidence for item in rules]
     values.extend(item.confidence for item in heuristics)
     values.extend(item.confidence for item in evidence)
+    if behavior_evidence is not None:
+        values.extend(item.confidence for item in behavior_evidence)
     if not values:
         return 0.35
     return round(min(0.95, mean(values)), 3)

@@ -2,9 +2,11 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
+from igris.analysis.behavioral.synthetic import SyntheticBehaviorAnalyzer
 from igris.core.config import Settings
 from igris.intelligence.threat.mapper import load_mapping_dataset
 from igris.main import create_app
+from igris.schemas.behavior_analysis import SyntheticScenario
 from igris.schemas.threat_intelligence import CapabilityCategory
 
 from .fixtures import malformed_pe_fixture, reverse_x86_pe_fixture, static_suspicious_pe_fixture
@@ -139,6 +141,31 @@ def test_false_mapping_prevention_requires_correlated_network_evidence(
     assert "T1071" not in {item["technique_id"] for item in api_only["techniques"]}
 
 
+def test_cached_behavior_evidence_can_support_attack_mapping(tmp_path: Path) -> None:
+    with make_client(tmp_path) as client:
+        sample_id = upload(client, b"hello world benign readme", "readme.txt")
+        repository = client.app.state.metadata_repository
+        sample = repository.get(sample_id)
+        assert sample is not None
+        sample.behavior_analysis = SyntheticBehaviorAnalyzer().analyze(
+            sample_id=sample_id,
+            scenario=SyntheticScenario.NETWORK_ACTIVITY,
+        )
+        repository.upsert(sample)
+        result = assess(client, sample_id)
+
+    techniques = {item["technique_id"]: item for item in result["techniques"]}
+    assert "T1071" in techniques
+    assert techniques["T1071"]["source_engine"] == "behavior_analysis"
+    assert techniques["T1071"]["confidence"] == 0.45
+    node_sources = {
+        node["details"].get("source")
+        for node in result["evidence_graph"]["nodes"]
+        if node["node_type"] == "Observation"
+    }
+    assert "synthetic_behavior_analysis" in node_sources
+
+
 def test_suspicious_looking_benign_case_stays_hypothetical(tmp_path: Path) -> None:
     content = b"Benign updater uses InternetOpenA for http://example.test release notes."
     with make_client(tmp_path) as client:
@@ -158,9 +185,7 @@ def test_evidence_graph_preserves_observation_indicator_capability_technique_cha
     with make_client(tmp_path) as client:
         sample_id = upload(client, reverse_x86_pe_fixture(), "reverse.exe")
         result = assess(client, sample_id)
-        relationships_response = client.get(
-            f"/api/v1/samples/{sample_id}/evidence-relationships"
-        )
+        relationships_response = client.get(f"/api/v1/samples/{sample_id}/evidence-relationships")
 
     assert relationships_response.status_code == 200
     graph = relationships_response.json()["evidence_graph"]
@@ -197,4 +222,4 @@ def test_malformed_input_is_handled_without_execution(tmp_path: Path) -> None:
         result = assess(client, sample_id)
 
     assert result["status"] in {"completed", "insufficient_evidence"}
-    assert "sandboxing" in " ".join(result["limitations"])
+    assert "sandbox" in " ".join(result["limitations"])

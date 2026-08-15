@@ -7,4 +7,3 @@ class StaticAnalyzer(Analyzer):
     """Future interface for static file inspection that never executes samples."""
 
     kind = "static"
-

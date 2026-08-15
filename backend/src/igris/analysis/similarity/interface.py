@@ -7,4 +7,3 @@ class SimilarityAnalyzer(Analyzer):
     """Future interface for similarity and clustering workflows."""
 
     kind = "similarity"
-

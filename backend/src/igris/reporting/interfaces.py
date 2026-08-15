@@ -19,4 +19,3 @@ class ReportRenderer(ABC):
     @abstractmethod
     async def render(self, sample_id: str) -> ReportSummary:
         """Render a report from stored analysis evidence."""
-

@@ -15,4 +15,3 @@ class HealthResponse(BaseModel):
     version: str
     environment: str
     components: dict[str, Literal["ok", "degraded", "unavailable"]]
-

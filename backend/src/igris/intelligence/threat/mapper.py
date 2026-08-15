@@ -8,6 +8,7 @@ from pathlib import Path
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, ValidationError
 
 from igris.core.errors import AppError
+from igris.schemas.behavior_analysis import BehaviorAnalysisResult, BehaviorEvidence
 from igris.schemas.reverse_analysis import FunctionEvidence
 from igris.schemas.static_analysis import ExtractedString, NormalizedImport, StaticEvidence
 from igris.schemas.threat_intelligence import (
@@ -40,6 +41,7 @@ class MappingRule(BaseModel):
     explanation: str
     required_evidence_types: list[str] = Field(default_factory=list)
     required_reverse_evidence_types: list[str] = Field(default_factory=list)
+    required_behavior_evidence_types: list[str] = Field(default_factory=list)
     required_string_categories: list[str] = Field(default_factory=list)
     required_string_categories_any: list[str] = Field(default_factory=list)
     required_api_categories: list[str] = Field(default_factory=list)
@@ -82,14 +84,17 @@ def build_threat_assessment(
     strings: list[ExtractedString],
     imports: list[NormalizedImport],
     reverse_evidence: list[FunctionEvidence],
+    behavior_analysis: BehaviorAnalysisResult | None = None,
 ) -> ThreatAssessment:
     capabilities: list[Capability] = []
     techniques: list[Technique] = []
     mappings: list[EvidenceMapping] = []
 
+    behavior_evidence = behavior_analysis.evidence if behavior_analysis is not None else []
+
     for rule in dataset.rules:
         matched_ids = _matched_evidence_ids(
-            rule, static_evidence, strings, imports, reverse_evidence
+            rule, static_evidence, strings, imports, reverse_evidence, behavior_evidence
         )
         if not matched_ids:
             continue
@@ -104,7 +109,9 @@ def build_threat_assessment(
 
     capabilities = _merge_capabilities(capabilities)
     hypotheses = _behavior_hypotheses(capabilities, techniques)
-    graph = _build_graph(static_evidence, reverse_evidence, capabilities, techniques, mappings)
+    graph = _build_graph(
+        static_evidence, reverse_evidence, behavior_evidence, capabilities, techniques, mappings
+    )
     narrative = _narrative(capabilities, techniques, hypotheses)
     status = (
         IntelligenceStatus.COMPLETED
@@ -125,7 +132,8 @@ def build_threat_assessment(
         limitations=[
             "Mappings are evidence-driven hypotheses, not proof of malicious behavior.",
             "ATT&CK mappings use a local versioned dataset and do not imply actor attribution.",
-            "Phase 5 does not use ML, sandboxing, dynamic behavior, reputation, or similarity.",
+            "Behavior mappings use only cached behavior-analysis results and do not launch "
+            "sample execution or sandbox infrastructure.",
             "Similarity, if added later, is not attribution.",
         ],
     )
@@ -137,10 +145,12 @@ def _matched_evidence_ids(
     strings: list[ExtractedString],
     imports: list[NormalizedImport],
     reverse_evidence: list[FunctionEvidence],
+    behavior_evidence: list[BehaviorEvidence],
 ) -> list[str]:
     matched: list[str] = []
     evidence_by_type = _ids_by_type(static_evidence)
     reverse_by_type = _reverse_ids_by_type(reverse_evidence)
+    behavior_by_type = _behavior_ids_by_type(behavior_evidence)
     string_values = [item.value.lower() for item in strings]
     string_categories = Counter(str(item.category) for item in strings)
     api_categories = Counter(str(item.category) for item in imports)
@@ -152,6 +162,11 @@ def _matched_evidence_ids(
         matched.extend(ids)
     for evidence_type in rule.required_reverse_evidence_types:
         ids = reverse_by_type.get(evidence_type, [])
+        if not ids:
+            return []
+        matched.extend(ids)
+    for evidence_type in rule.required_behavior_evidence_types:
+        ids = behavior_by_type.get(evidence_type, [])
         if not ids:
             return []
         matched.extend(ids)
@@ -274,6 +289,7 @@ def _behavior_hypotheses(
 def _build_graph(
     static_evidence: list[StaticEvidence],
     reverse_evidence: list[FunctionEvidence],
+    behavior_evidence: list[BehaviorEvidence],
     capabilities: list[Capability],
     techniques: list[Technique],
     mappings: list[EvidenceMapping],
@@ -295,6 +311,17 @@ def _build_graph(
             details={
                 "function_id": reverse_item.function_id,
                 "confidence": reverse_item.confidence,
+            },
+        )
+    for behavior_item in behavior_evidence:
+        nodes[behavior_item.evidence_id] = EvidenceGraphNode(
+            node_id=behavior_item.evidence_id,
+            node_type="Observation",
+            label=str(behavior_item.type),
+            details={
+                "source": behavior_item.source,
+                "confidence": behavior_item.confidence,
+                "severity": str(behavior_item.severity),
             },
         )
     for capability in capabilities:
@@ -323,7 +350,7 @@ def _build_graph(
                     node_type="Indicator",
                     label=indicator_id,
                     details={"mapping_id": mapping.mapping_id},
-                )
+                ),
             )
 
         for observation_id in mapping.observation_ids:
@@ -381,9 +408,7 @@ def _narrative(
             "provide more context."
         )
     capability_text = ", ".join(str(item.category) for item in capabilities)
-    technique_text = ", ".join(
-        f"{item.technique_id} {item.technique_name}" for item in techniques
-    )
+    technique_text = ", ".join(f"{item.technique_id} {item.technique_name}" for item in techniques)
     hypothesis_text = " ".join(item.statement for item in hypotheses)
     return (
         f"OBSERVED: Igris found technical evidence associated with {capability_text}. "
@@ -401,6 +426,13 @@ def _ids_by_type(evidence: list[StaticEvidence]) -> dict[str, list[str]]:
 
 
 def _reverse_ids_by_type(evidence: list[FunctionEvidence]) -> dict[str, list[str]]:
+    grouped: dict[str, list[str]] = {}
+    for item in evidence:
+        grouped.setdefault(str(item.type), []).append(item.evidence_id)
+    return grouped
+
+
+def _behavior_ids_by_type(evidence: list[BehaviorEvidence]) -> dict[str, list[str]]:
     grouped: dict[str, list[str]] = {}
     for item in evidence:
         grouped.setdefault(str(item.type), []).append(item.evidence_id)

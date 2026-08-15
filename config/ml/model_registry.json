@@ -1,0 +1,382 @@
+{
+  "registry_version": "ml-model-registry/v1",
+  "active_model_version": "synthetic-phase6-v1-random_forest-v1",
+  "models": [
+    {
+      "model_version": "synthetic-phase6-v1-random_forest-v1",
+      "model_kind": "random_forest",
+      "feature_schema_version": "ml-static-reverse-feature-vector/v1",
+      "feature_set": "static_reverse",
+      "dataset_version": "synthetic-phase6/v1",
+      "trained_at": "2026-08-09T19:15:49.388061Z",
+      "hyperparameters": {
+        "n_estimators": 64,
+        "max_depth": 4,
+        "class_weight": "balanced",
+        "random_state": 13
+      },
+      "metrics": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "false_positive_rate": 0.0,
+        "roc_auc": 1.0,
+        "inference_time_ms_per_sample": 2.3711000012553995,
+        "confusion_matrix": {
+          "true_negative": 2,
+          "false_positive": 0,
+          "false_negative": 0,
+          "true_positive": 2
+        }
+      },
+      "feature_names": [
+        "file_size_bytes",
+        "section_count",
+        "entropy_min",
+        "entropy_max",
+        "entropy_mean",
+        "import_count",
+        "resource_count",
+        "overlay_size",
+        "executable_section_count",
+        "writable_executable_section_count",
+        "api_category_count.process_management",
+        "api_category_count.memory_management",
+        "api_category_count.filesystem",
+        "api_category_count.registry",
+        "api_category_count.networking",
+        "api_category_count.cryptography",
+        "api_category_count.service_management",
+        "api_category_count.system_information",
+        "api_category_count.process_thread_manipulation",
+        "api_category_count.other",
+        "string_count.url",
+        "string_count.ipv4",
+        "string_count.ipv6",
+        "string_count.domain",
+        "string_count.email",
+        "string_count.windows_path",
+        "string_count.unix_path",
+        "string_count.registry_path",
+        "string_count.command_interpreter",
+        "string_count.suspicious_keyword",
+        "string_count.generic_string",
+        "static_evidence_count.INTERESTING_STRING",
+        "static_evidence_count.SUSPICIOUS_KEYWORD",
+        "static_evidence_count.API_CAPABILITY",
+        "static_evidence_count.HIGH_ENTROPY_SECTION",
+        "static_evidence_count.EXECUTABLE_WRITABLE_SECTION",
+        "static_evidence_count.UNUSUAL_SECTION_NAME",
+        "static_evidence_count.SUSPICIOUS_SIZE_RELATIONSHIP",
+        "static_evidence_count.POSSIBLE_PACKING_INDICATOR",
+        "static_evidence_count.OVERLAY_PRESENT",
+        "static_evidence_count.RESOURCE_PRESENT",
+        "static_evidence_count.TLS_CALLBACK_DIRECTORY_PRESENT",
+        "static_evidence_count.SUSPICIOUS_ENTRY_POINT_SECTION",
+        "reverse.function_count",
+        "reverse.instruction_count",
+        "reverse.basic_block_count",
+        "reverse.cyclomatic_complexity_max",
+        "reverse.cyclomatic_complexity_mean",
+        "reverse_evidence_count.STRING_API_CORRELATION",
+        "reverse_evidence_count.SUSPICIOUS_API_CALL",
+        "reverse_evidence_count.EXECUTABLE_MEMORY_OPERATION",
+        "reverse_evidence_count.UNUSUAL_CONTROL_FLOW",
+        "reverse_evidence_count.ENCODED_CONSTANT",
+        "reverse_evidence_count.SUSPICIOUS_STRING_REFERENCE",
+        "reverse_evidence_count.SENSITIVE_CAPABILITY_CALL",
+        "behavior.event_count",
+        "behavior.network_connection_count",
+        "behavior.process_creation_count"
+      ],
+      "important_features": [
+        [
+          "entropy_mean",
+          0.20077972709551659
+        ],
+        [
+          "section_count",
+          0.11403508771929824
+        ],
+        [
+          "file_size_bytes",
+          0.1111111111111111
+        ],
+        [
+          "api_category_count.networking",
+          0.09551656920077974
+        ],
+        [
+          "static_evidence_count.INTERESTING_STRING",
+          0.0916179337231969
+        ],
+        [
+          "api_category_count.registry",
+          0.0682261208576998
+        ],
+        [
+          "static_evidence_count.POSSIBLE_PACKING_INDICATOR",
+          0.05263157894736843
+        ],
+        [
+          "reverse_evidence_count.EXECUTABLE_MEMORY_OPERATION",
+          0.04580896686159844
+        ],
+        [
+          "string_count.registry_path",
+          0.04288499025341131
+        ],
+        [
+          "reverse_evidence_count.STRING_API_CORRELATION",
+          0.038011695906432746
+        ]
+      ],
+      "artifact_path": "config\\ml\\models\\synthetic-phase6-v1-random_forest-v1.joblib",
+      "limitations": [
+        "Synthetic development data is not representative of real malware prevalence.",
+        "Metrics are for pipeline validation and do not establish operational performance.",
+        "Feature importance indicates model influence, not causal proof."
+      ]
+    }
+  ],
+  "experiments": [
+    {
+      "experiment_id": "synthetic-phase6/v1-static_reverse-baseline",
+      "dataset_version": "synthetic-phase6/v1",
+      "feature_schema_version": "ml-static-reverse-feature-vector/v1",
+      "feature_set": "static_reverse",
+      "trained_at": "2026-08-09T19:15:49.388061Z",
+      "split_summary": {
+        "train": 4,
+        "validation": 4,
+        "test": 4,
+        "family_aware": true,
+        "duplicate_sha256_removed": 0,
+        "leakage_warnings": []
+      },
+      "models": [
+        {
+          "model_kind": "logistic_regression",
+          "hyperparameters": {
+            "max_iter": 1000,
+            "class_weight": "balanced",
+            "random_state": 13
+          },
+          "validation_metrics": {
+            "precision": 1.0,
+            "recall": 0.5,
+            "f1": 0.6666666666666666,
+            "false_positive_rate": 0.0,
+            "roc_auc": 0.75,
+            "inference_time_ms_per_sample": 0.2144999998563435,
+            "confusion_matrix": {
+              "true_negative": 2,
+              "false_positive": 0,
+              "false_negative": 1,
+              "true_positive": 1
+            }
+          },
+          "test_metrics": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "false_positive_rate": 0.0,
+            "roc_auc": 1.0,
+            "inference_time_ms_per_sample": 0.2327250003872905,
+            "confusion_matrix": {
+              "true_negative": 2,
+              "false_positive": 0,
+              "false_negative": 0,
+              "true_positive": 2
+            }
+          },
+          "selected": false,
+          "important_features": [
+            [
+              "entropy_mean",
+              0.3283669070484913
+            ],
+            [
+              "section_count",
+              0.3160467205815591
+            ],
+            [
+              "file_size_bytes",
+              0.31368713178531354
+            ],
+            [
+              "api_category_count.memory_management",
+              0.20762426699206937
+            ],
+            [
+              "api_category_count.process_thread_manipulation",
+              0.20762426699206937
+            ],
+            [
+              "static_evidence_count.POSSIBLE_PACKING_INDICATOR",
+              0.20762426699206937
+            ],
+            [
+              "reverse_evidence_count.EXECUTABLE_MEMORY_OPERATION",
+              0.20762426699206937
+            ],
+            [
+              "entropy_max",
+              0.20762426699206935
+            ],
+            [
+              "api_category_count.networking",
+              0.20006958694422491
+            ],
+            [
+              "string_count.url",
+              0.20006958694422491
+            ]
+          ]
+        },
+        {
+          "model_kind": "random_forest",
+          "hyperparameters": {
+            "n_estimators": 64,
+            "max_depth": 4,
+            "class_weight": "balanced",
+            "random_state": 13
+          },
+          "validation_metrics": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "false_positive_rate": 0.0,
+            "roc_auc": 1.0,
+            "inference_time_ms_per_sample": 2.601899999717716,
+            "confusion_matrix": {
+              "true_negative": 2,
+              "false_positive": 0,
+              "false_negative": 0,
+              "true_positive": 2
+            }
+          },
+          "test_metrics": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "false_positive_rate": 0.0,
+            "roc_auc": 1.0,
+            "inference_time_ms_per_sample": 2.3711000012553995,
+            "confusion_matrix": {
+              "true_negative": 2,
+              "false_positive": 0,
+              "false_negative": 0,
+              "true_positive": 2
+            }
+          },
+          "selected": true,
+          "important_features": [
+            [
+              "entropy_mean",
+              0.20077972709551659
+            ],
+            [
+              "section_count",
+              0.11403508771929824
+            ],
+            [
+              "file_size_bytes",
+              0.1111111111111111
+            ],
+            [
+              "api_category_count.networking",
+              0.09551656920077974
+            ],
+            [
+              "static_evidence_count.INTERESTING_STRING",
+              0.0916179337231969
+            ],
+            [
+              "api_category_count.registry",
+              0.0682261208576998
+            ],
+            [
+              "static_evidence_count.POSSIBLE_PACKING_INDICATOR",
+              0.05263157894736843
+            ],
+            [
+              "reverse_evidence_count.EXECUTABLE_MEMORY_OPERATION",
+              0.04580896686159844
+            ],
+            [
+              "string_count.registry_path",
+              0.04288499025341131
+            ],
+            [
+              "reverse_evidence_count.STRING_API_CORRELATION",
+              0.038011695906432746
+            ]
+          ]
+        },
+        {
+          "model_kind": "gradient_boosting",
+          "hyperparameters": {
+            "n_estimators": 64,
+            "learning_rate": 0.05,
+            "max_depth": 2,
+            "random_state": 13
+          },
+          "validation_metrics": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "false_positive_rate": 0.0,
+            "roc_auc": 1.0,
+            "inference_time_ms_per_sample": 0.3128500011371216,
+            "confusion_matrix": {
+              "true_negative": 2,
+              "false_positive": 0,
+              "false_negative": 0,
+              "true_positive": 2
+            }
+          },
+          "test_metrics": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "false_positive_rate": 0.0,
+            "roc_auc": 1.0,
+            "inference_time_ms_per_sample": 0.16902499919524416,
+            "confusion_matrix": {
+              "true_negative": 2,
+              "false_positive": 0,
+              "false_negative": 0,
+              "true_positive": 2
+            }
+          },
+          "selected": false,
+          "important_features": [
+            [
+              "entropy_mean",
+              0.5016887150633693
+            ],
+            [
+              "section_count",
+              0.27890309681965686
+            ],
+            [
+              "file_size_bytes",
+              0.21940818811697388
+            ]
+          ]
+        }
+      ],
+      "selected_model_version": "synthetic-phase6-v1-random_forest-v1",
+      "limitations": [
+        "Synthetic development data is not representative of real malware prevalence.",
+        "Metrics are for pipeline validation and do not establish operational performance.",
+        "Feature importance indicates model influence, not causal proof."
+      ]
+    }
+  ],
+  "limitations": [
+    "Models are additional evidence sources and do not replace deterministic analysis.",
+    "Calibrated probabilities are not exposed because probability calibration is not run."
+  ]
+}

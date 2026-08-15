@@ -7,4 +7,3 @@ class ReverseEngineeringAnalyzer(Analyzer):
     """Future interface for reverse-engineering workflows."""
 
     kind = "reverse"
-

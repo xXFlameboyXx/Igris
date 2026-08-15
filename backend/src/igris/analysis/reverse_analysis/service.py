@@ -50,6 +50,7 @@ class ReverseAnalysisService:
         path = self.sample_storage.resolve(sample.storage_ref)
         result = analyze_reverse(sample, path, self.settings)
         sample.reverse_analysis = result
+        sample.malware_assessment = None
         sample.updated_at = datetime.now(UTC)
         self.metadata_repository.upsert(sample)
         return ReverseAnalysisResponse(reverse_analysis=result)

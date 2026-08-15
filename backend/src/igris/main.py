@@ -19,7 +19,15 @@ from igris.core.errors import (
 )
 from igris.core.logging import configure_logging, get_logger
 from igris.middleware.request_id import RequestIdMiddleware
-from igris.storage.factory import build_metadata_repository, build_sample_storage
+from igris.middleware.security_headers import SecurityHeadersMiddleware
+from igris.storage.factory import (
+    build_dataset_repository,
+    build_experiment_repository,
+    build_jobs_repository,
+    build_metadata_repository,
+    build_robustness_repository,
+    build_sample_storage,
+)
 
 
 @asynccontextmanager
@@ -42,7 +50,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     app = FastAPI(
         title="Igris API",
-        summary="Phase 0 foundation API for Igris.",
+        summary="Explainable malware-analysis and threat-intelligence API for Igris.",
         version=__version__,
         lifespan=lifespan,
         docs_url="/docs" if resolved_settings.enable_docs else None,
@@ -52,8 +60,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.settings = resolved_settings
     app.state.sample_storage = build_sample_storage(resolved_settings)
     app.state.metadata_repository = build_metadata_repository(resolved_settings)
+    app.state.jobs_repository = build_jobs_repository(resolved_settings)
+    app.state.experiment_repository = build_experiment_repository(resolved_settings)
+    app.state.dataset_repository = build_dataset_repository(resolved_settings)
+    app.state.robustness_repository = build_robustness_repository(resolved_settings)
 
     app.add_middleware(RequestIdMiddleware)
+    app.add_middleware(SecurityHeadersMiddleware)
 
     app.add_exception_handler(AppError, app_error_handler)
     app.add_exception_handler(Exception, app_error_handler)

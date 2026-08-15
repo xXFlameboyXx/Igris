@@ -37,4 +37,3 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
 
         response.headers[DEFAULT_REQUEST_ID_HEADER] = request_id
         return response
-

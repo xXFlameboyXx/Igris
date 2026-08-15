@@ -1,0 +1,166 @@
+{
+  "dataset_id": "igris-synthetic-benchmark-v1",
+  "dataset_version": "v1.0",
+  "name": "Igris Synthetic Evaluation Benchmark",
+  "description": "Legally safe synthetic evaluation dataset covering benign fixtures, trojan droppers, ransomware heuristics, and disagreement scenarios.",
+  "source": "Synthetic Project Fixtures",
+  "license": "MIT",
+  "collection_methodology": "Deterministic synthetic sample generator without live malware execution.",
+  "class_distribution": {
+    "BENIGN": 6,
+    "MALICIOUS": 6
+  },
+  "family_distribution": {
+    "synthetic-trojan": 3,
+    "synthetic-ransom": 3,
+    "benign-system": 3,
+    "benign-utility": 3
+  },
+  "inclusion_criteria": [
+    "Valid PE/ELF binary header structure",
+    "Deterministic synthetic features",
+    "Known ground-truth label"
+  ],
+  "exclusion_criteria": [
+    "Live malware requiring external C2 communication",
+    "Samples with ambiguous or untracked labels"
+  ],
+  "limitations": [
+    "Synthetic benchmark data for pipeline mechanics and ablation testing only.",
+    "Not representative of real-world malware prevalence or threat landscape distributions."
+  ],
+  "samples": [
+    {
+      "sample_id": "synth-eval-trojan-001",
+      "sha256": "1000000000000000000000000000000000000000000000000000000000000001",
+      "label": "MALICIOUS",
+      "family": "synthetic-trojan",
+      "split": "TRAIN",
+      "source": "Igris synthetic fixture",
+      "format": "pe",
+      "file_size_bytes": 147456,
+      "tags": ["dropper", "injection", "persistence"]
+    },
+    {
+      "sample_id": "synth-eval-trojan-002",
+      "sha256": "1000000000000000000000000000000000000000000000000000000000000002",
+      "label": "MALICIOUS",
+      "family": "synthetic-trojan",
+      "split": "VALIDATION",
+      "source": "Igris synthetic fixture",
+      "format": "pe",
+      "file_size_bytes": 150000,
+      "tags": ["dropper", "powershell"]
+    },
+    {
+      "sample_id": "synth-eval-trojan-003",
+      "sha256": "1000000000000000000000000000000000000000000000000000000000000003",
+      "label": "MALICIOUS",
+      "family": "synthetic-trojan",
+      "split": "TEST",
+      "source": "Igris synthetic fixture",
+      "format": "pe",
+      "file_size_bytes": 155000,
+      "tags": ["dropper", "c2_beacon"]
+    },
+    {
+      "sample_id": "synth-eval-ransom-001",
+      "sha256": "2000000000000000000000000000000000000000000000000000000000000001",
+      "label": "MALICIOUS",
+      "family": "synthetic-ransom",
+      "split": "TRAIN",
+      "source": "Igris synthetic fixture",
+      "format": "pe",
+      "file_size_bytes": 204800,
+      "tags": ["crypto", "file_encryptor"]
+    },
+    {
+      "sample_id": "synth-eval-ransom-002",
+      "sha256": "2000000000000000000000000000000000000000000000000000000000000002",
+      "label": "MALICIOUS",
+      "family": "synthetic-ransom",
+      "split": "VALIDATION",
+      "source": "Igris synthetic fixture",
+      "format": "pe",
+      "file_size_bytes": 210000,
+      "tags": ["crypto", "ransom_note"]
+    },
+    {
+      "sample_id": "synth-eval-ransom-003",
+      "sha256": "2000000000000000000000000000000000000000000000000000000000000003",
+      "label": "MALICIOUS",
+      "family": "synthetic-ransom",
+      "split": "TEST",
+      "source": "Igris synthetic fixture",
+      "format": "pe",
+      "file_size_bytes": 215000,
+      "tags": ["crypto", "vssadmin_delete"]
+    },
+    {
+      "sample_id": "synth-eval-benign-sys-001",
+      "sha256": "3000000000000000000000000000000000000000000000000000000000000001",
+      "label": "BENIGN",
+      "family": "benign-system",
+      "split": "TRAIN",
+      "source": "Igris synthetic fixture",
+      "format": "pe",
+      "file_size_bytes": 65536,
+      "tags": ["clean", "signed", "system"]
+    },
+    {
+      "sample_id": "synth-eval-benign-sys-002",
+      "sha256": "3000000000000000000000000000000000000000000000000000000000000002",
+      "label": "BENIGN",
+      "family": "benign-system",
+      "split": "VALIDATION",
+      "source": "Igris synthetic fixture",
+      "format": "pe",
+      "file_size_bytes": 70000,
+      "tags": ["clean", "runtime"]
+    },
+    {
+      "sample_id": "synth-eval-benign-sys-003",
+      "sha256": "3000000000000000000000000000000000000000000000000000000000000003",
+      "label": "BENIGN",
+      "family": "benign-system",
+      "split": "TEST",
+      "source": "Igris synthetic fixture",
+      "format": "pe",
+      "file_size_bytes": 72000,
+      "tags": ["clean", "diagnostics"]
+    },
+    {
+      "sample_id": "synth-eval-benign-util-001",
+      "sha256": "4000000000000000000000000000000000000000000000000000000000000001",
+      "label": "BENIGN",
+      "family": "benign-utility",
+      "split": "TRAIN",
+      "source": "Igris synthetic fixture",
+      "format": "pe",
+      "file_size_bytes": 45056,
+      "tags": ["clean", "calculator"]
+    },
+    {
+      "sample_id": "synth-eval-benign-util-002",
+      "sha256": "4000000000000000000000000000000000000000000000000000000000000002",
+      "label": "BENIGN",
+      "family": "benign-utility",
+      "split": "VALIDATION",
+      "source": "Igris synthetic fixture",
+      "format": "pe",
+      "file_size_bytes": 48000,
+      "tags": ["clean", "editor"]
+    },
+    {
+      "sample_id": "synth-eval-benign-util-003",
+      "sha256": "4000000000000000000000000000000000000000000000000000000000000003",
+      "label": "BENIGN",
+      "family": "benign-utility",
+      "split": "TEST",
+      "source": "Igris synthetic fixture",
+      "format": "pe",
+      "file_size_bytes": 50000,
+      "tags": ["clean", "compressor"]
+    }
+  ]
+}

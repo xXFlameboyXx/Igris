@@ -68,9 +68,7 @@ class HeuristicEngine:
                         "At least one section is both writable and executable. Benign packers or "
                         "protectors may do this, so this is not a verdict."
                     ),
-                    supporting_evidence_ids=evidence_by_type.get(
-                        "EXECUTABLE_WRITABLE_SECTION", []
-                    ),
+                    supporting_evidence_ids=evidence_by_type.get("EXECUTABLE_WRITABLE_SECTION", []),
                 )
             )
 
@@ -87,9 +85,7 @@ class HeuristicEngine:
                         "Multiple conservative packing indicators co-occur. This can also occur "
                         "in installers and protected commercial software."
                     ),
-                    supporting_evidence_ids=evidence_by_type.get(
-                        "POSSIBLE_PACKING_INDICATOR", []
-                    ),
+                    supporting_evidence_ids=evidence_by_type.get("POSSIBLE_PACKING_INDICATOR", []),
                 )
             )
 
@@ -110,14 +106,11 @@ class HeuristicEngine:
                 )
             )
 
-        if (
-            api_counts.get("networking", 0) >= 1
-            and (
-                string_counts.get("url", 0) >= 1
-                or string_counts.get("domain", 0) >= 1
-                or string_counts.get("ipv4", 0) >= 1
-                or string_counts.get("ipv6", 0) >= 1
-            )
+        if api_counts.get("networking", 0) >= 1 and (
+            string_counts.get("url", 0) >= 1
+            or string_counts.get("domain", 0) >= 1
+            or string_counts.get("ipv4", 0) >= 1
+            or string_counts.get("ipv6", 0) >= 1
         ):
             findings.append(
                 HeuristicFinding(

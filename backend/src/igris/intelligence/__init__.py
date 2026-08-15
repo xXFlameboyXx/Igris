@@ -1,2 +1,1 @@
 """Threat intelligence boundary."""
-
