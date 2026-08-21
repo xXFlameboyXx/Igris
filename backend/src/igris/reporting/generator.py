@@ -185,11 +185,29 @@ class ReportGenerator:
 
         # Threat Assessment Summary
         if sample.threat_assessment:
+            techniques_list = [
+                {
+                    "technique_id": t.technique_id,
+                    "technique_name": t.technique_name,
+                    "tactic": str(t.tactic),
+                    "subtechnique_id": t.subtechnique_id,
+                    "subtechnique_name": t.subtechnique_name,
+                    "description": t.description,
+                    "how_it_works": t.how_it_works,
+                    "why_igris_mapped": t.why_igris_mapped,
+                    "hypothesis": t.hypothesis,
+                    "classification": str(t.label),
+                    "confidence": t.confidence,
+                    "supporting_evidence": [e.model_dump() for e in t.supporting_evidence],
+                }
+                for t in sample.threat_assessment.techniques
+            ]
             summaries["threat_assessment"] = {
                 "status": "completed",
                 "capabilities_count": len(sample.threat_assessment.capabilities),
                 "attack_techniques_count": len(sample.threat_assessment.techniques),
                 "narrative": sample.threat_assessment.narrative,
+                "techniques": techniques_list,
             }
         else:
             summaries["threat_assessment"] = {"status": "not_performed"}

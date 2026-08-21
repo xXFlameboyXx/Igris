@@ -48,14 +48,16 @@ export function InteractiveGraph({
   const svgRef = useRef<SVGSVGElement | null>(null);
 
   // Apply node limits for browser performance
-  const isTruncated = nodes.length > maxNodesLimit;
+  const isTruncated = (nodes?.length || 0) > maxNodesLimit;
   const activeNodes = useMemo(() => {
-    return isTruncated ? nodes.slice(0, maxNodesLimit) : nodes;
+    const list = nodes || [];
+    return isTruncated ? list.slice(0, maxNodesLimit) : list;
   }, [nodes, isTruncated, maxNodesLimit]);
 
   const activeNodeIds = useMemo(() => new Set(activeNodes.map((n) => n.id)), [activeNodes]);
   const activeEdges = useMemo(() => {
-    return edges.filter((e) => activeNodeIds.has(e.source) && activeNodeIds.has(e.target));
+    const list = edges || [];
+    return list.filter((e) => activeNodeIds.has(e.source) && activeNodeIds.has(e.target));
   }, [edges, activeNodeIds]);
 
   // Deterministic DAG layout computation

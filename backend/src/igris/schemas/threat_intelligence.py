@@ -36,33 +36,78 @@ class IntelligenceStatus(StrEnum):
     INSUFFICIENT_EVIDENCE = "insufficient_evidence"
 
 
+class TechniqueEvidenceItem(BaseModel):
+    """Traceable evidence item supporting an ATT&CK mapping with concrete extracted values."""
+
+    model_config = ConfigDict(extra="ignore")
+
+    evidence_id: str
+    category: str
+    evidence_type: str
+    statement: str
+    value: str | None = None
+    observation_level: AssessmentLabel = AssessmentLabel.OBSERVED
+    strength: str = "MEDIUM"
+    source: str = "static_analysis"
+
+
 class Capability(BaseModel):
     """Evidence-supported capability hypothesis."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="ignore")
 
     capability_id: str
     category: CapabilityCategory
+    name: str = ""
     label: AssessmentLabel
     confidence: float = Field(ge=0.0, le=1.0)
-    evidence_ids: list[str]
-    source_engines: list[str]
-    explanation: str
+    evidence_ids: list[str] = Field(default_factory=list)
+    supporting_evidence_ids: list[str] = Field(default_factory=list)
+    source_engines: list[str] = Field(default_factory=list)
+    explanation: str = ""
+    description: str = ""
+
+    def model_post_init(self, __context: object) -> None:
+        if not self.name:
+            self.name = str(self.category)
+        if not self.description:
+            self.description = self.explanation
+        if not self.supporting_evidence_ids and self.evidence_ids:
+            self.supporting_evidence_ids = list(self.evidence_ids)
+        elif not self.evidence_ids and self.supporting_evidence_ids:
+            self.evidence_ids = list(self.supporting_evidence_ids)
 
 
 class Technique(BaseModel):
-    """ATT&CK technique mapping."""
+    """Rich, evidence-backed ATT&CK technique mapping."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="ignore")
 
     technique_id: str
     technique_name: str
     tactic: CapabilityCategory
-    evidence_ids: list[str]
+    subtechnique_id: str | None = None
+    subtechnique_name: str | None = None
+    description: str = ""
+    how_it_works: str = ""
+    why_igris_mapped: str = ""
+    hypothesis: str = ""
+    label: AssessmentLabel = AssessmentLabel.POSSIBLE
     confidence: float = Field(ge=0.0, le=1.0)
-    source_engine: str
-    explanation: str
-    mapping_version: str
+    source_engine: str = "threat_intelligence"
+    explanation: str = ""
+    mapping_version: str = "attack-mapping/v2"
+    evidence_ids: list[str] = Field(default_factory=list)
+    supporting_evidence_ids: list[str] = Field(default_factory=list)
+    supporting_evidence: list[TechniqueEvidenceItem] = Field(default_factory=list)
+
+    def model_post_init(self, __context: object) -> None:
+        if not self.supporting_evidence_ids and self.evidence_ids:
+            self.supporting_evidence_ids = list(self.evidence_ids)
+        elif not self.evidence_ids and self.supporting_evidence_ids:
+            self.evidence_ids = list(self.supporting_evidence_ids)
+        if not self.explanation and self.why_igris_mapped:
+            self.explanation = self.why_igris_mapped
 
 
 class EvidenceMapping(BaseModel):
@@ -139,21 +184,28 @@ class AttributionInterface(BaseModel):
 class ThreatAssessment(BaseModel):
     """Phase 5 threat-intelligence assessment."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="ignore")
 
     sample_id: str
     status: IntelligenceStatus
     engine_version: str
     attack_mapping_version: str
     generated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
-    capabilities: list[Capability]
-    techniques: list[Technique]
-    evidence_mappings: list[EvidenceMapping]
-    behavior_hypotheses: list[BehaviorHypothesis]
-    evidence_graph: EvidenceGraph
-    narrative: str
+    capabilities: list[Capability] = Field(default_factory=list)
+    techniques: list[Technique] = Field(default_factory=list)
+    attack_techniques: list[Technique] = Field(default_factory=list)
+    evidence_mappings: list[EvidenceMapping] = Field(default_factory=list)
+    behavior_hypotheses: list[BehaviorHypothesis] = Field(default_factory=list)
+    evidence_graph: EvidenceGraph = Field(default_factory=lambda: EvidenceGraph(nodes=[], edges=[]))
+    narrative: str = ""
     attribution: AttributionInterface = Field(default_factory=AttributionInterface)
     limitations: list[str] = Field(default_factory=list)
+
+    def model_post_init(self, __context: object) -> None:
+        if not self.attack_techniques and self.techniques:
+            self.attack_techniques = list(self.techniques)
+        elif not self.techniques and self.attack_techniques:
+            self.techniques = list(self.attack_techniques)
 
 
 class ThreatAssessmentResponse(BaseModel):

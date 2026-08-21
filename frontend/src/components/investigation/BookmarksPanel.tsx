@@ -101,7 +101,7 @@ export function BookmarksPanel({
           <div className="drawer-title-group">
             <span className="drawer-icon" aria-hidden="true">🔖</span>
             <h3 id="bookmarks-drawer-title" className="drawer-title">
-              Investigation Bookmarks ({bookmarks.length})
+              Investigation Bookmarks ({(bookmarks || []).length})
             </h3>
           </div>
           <div className="drawer-actions">
@@ -124,18 +124,18 @@ export function BookmarksPanel({
         </div>
 
         <div className="drawer-body">
-          {bookmarks.length === 0 ? (
+          {(bookmarks || []).length === 0 ? (
             <EmptyState
               title="No Bookmarks"
               message="Bookmark suspicious functions, evidence items, network connections, or ATT&CK techniques to curate your investigation."
             />
           ) : (
             <ul className="bookmark-list" role="list">
-              {bookmarks.map((b) => (
+              {(bookmarks || []).map((b) => (
                 <li key={b.bookmark_id} className="bookmark-card">
                   <div className="bookmark-card-header">
                     <div className="bookmark-meta-tags">
-                      <span className="badge badge-category badge-sm">{b.target_type.toUpperCase()}</span>
+                      <span className="badge badge-category badge-sm">{(b.target_type || "general").toUpperCase()}</span>
                       {b.category && (
                         <span className="badge badge-neutral badge-sm">{b.category}</span>
                       )}

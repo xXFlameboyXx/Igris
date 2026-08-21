@@ -32,6 +32,10 @@ class SampleMetadataRepository(ABC):
     def list_all(self) -> list[Sample]:
         """Return all stored samples."""
 
+    @abstractmethod
+    def delete(self, sample_id: str) -> bool:
+        """Delete a sample metadata record by ID. Return True if deleted, False otherwise."""
+
 
 class InMemorySampleMetadataRepository(SampleMetadataRepository):
     """In-memory repository for tests."""
@@ -53,6 +57,9 @@ class InMemorySampleMetadataRepository(SampleMetadataRepository):
 
     def list_all(self) -> list[Sample]:
         return list(self._samples.values())
+
+    def delete(self, sample_id: str) -> bool:
+        return self._samples.pop(sample_id, None) is not None
 
 
 class JsonSampleMetadataRepository(SampleMetadataRepository):
@@ -90,6 +97,22 @@ class JsonSampleMetadataRepository(SampleMetadataRepository):
     def list_all(self) -> list[Sample]:
         with self._lock:
             return list(self._load().values())
+
+    def delete(self, sample_id: str) -> bool:
+        with self._lock:
+            samples = self._load()
+            if sample_id in samples:
+                del samples[sample_id]
+                self.path.write_text(
+                    json.dumps(
+                        {key: value.model_dump(mode="json") for key, value in samples.items()},
+                        indent=2,
+                        sort_keys=True,
+                    ),
+                    encoding="utf-8",
+                )
+                return True
+            return False
 
     def _load(self) -> dict[str, Sample]:
         if not self.path.exists():
@@ -145,6 +168,14 @@ class PostgresSampleMetadataRepository(SampleMetadataRepository):
         with self._connect() as connection:
             rows = connection.execute("SELECT metadata FROM samples ORDER BY created_at").fetchall()
         return [self._row_to_sample(row[0]) for row in rows]
+
+    def delete(self, sample_id: str) -> bool:
+        with self._connect() as connection:
+            cursor = connection.execute(
+                "DELETE FROM samples WHERE sample_id = %s",
+                (sample_id,),
+            )
+            return bool(cursor.rowcount and cursor.rowcount > 0)
 
     def _ensure_schema(self) -> None:
         with self._connect() as connection:

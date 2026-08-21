@@ -105,6 +105,16 @@ class FileIntelligenceService:
             raise AppError("Sample not found", code="sample_not_found", status_code=404)
         return SampleResponse.from_sample(sample)
 
+    def delete_sample(self, sample_id: str) -> None:
+        sample = self.metadata_repository.get(sample_id)
+        if sample is None:
+            raise AppError("Sample not found", code="sample_not_found", status_code=404)
+
+        if sample.storage_ref:
+            self.sample_storage.delete(sample.storage_ref)
+
+        self.metadata_repository.delete(sample_id)
+
     def get_file_info(self, sample_id: str) -> FileInfoResponse:
         sample = self.metadata_repository.get(sample_id)
         if sample is None:

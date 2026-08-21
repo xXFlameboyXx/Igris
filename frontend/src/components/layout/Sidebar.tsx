@@ -36,51 +36,60 @@ export function Sidebar({ activeTab, onSelectTab, sample }: SidebarProps) {
       id: "verdict",
       label: "Verdict & Explainability",
       icon: "⚖️",
-      badge: sample?.malware_assessment ? `${sample.malware_assessment.risk_score.score}/100` : undefined,
+      badge:
+        sample?.malware_assessment?.risk_score?.score != null
+          ? `${sample.malware_assessment.risk_score.score}/100`
+          : undefined,
     },
     {
       id: "evidence",
       label: "Evidence Explorer",
       icon: "🔎",
-      badge: sample?.malware_assessment?.evidence_summary.total_evidence_count,
+      badge: sample?.malware_assessment?.evidence_summary?.total_evidence_count,
     },
     {
       id: "static",
       label: "Static Analysis",
       icon: "📑",
-      badge: sample?.static_analysis ? `${sample.static_analysis.strings_found.length} str` : undefined,
+      badge: sample?.static_analysis
+        ? `${(sample.static_analysis.strings_found?.length ?? sample.static_analysis.strings?.length ?? 0)} str`
+        : undefined,
     },
     {
       id: "reverse",
       label: "Reverse Engineering",
       icon: "⚙️",
-      badge: sample?.reverse_analysis?.functions.length,
+      badge: sample?.reverse_analysis?.functions?.length,
     },
     {
       id: "behavior",
       label: "Behavior Sandbox",
       icon: "🏃",
       badge: sample?.behavior_analysis
-        ? sample.behavior_analysis.processes.length + sample.behavior_analysis.network_events.length
+        ? (sample.behavior_analysis.processes?.length || 0) +
+          (sample.behavior_analysis.network_events?.length || 0)
         : undefined,
     },
     {
       id: "similarity",
       label: "Sample Similarity",
       icon: "🧬",
-      badge: sample?.similarity_analysis?.matches.length,
+      badge: sample?.similarity_analysis?.matches?.length,
     },
     {
       id: "attack",
       label: "ATT&CK Mapping",
       icon: "🎯",
-      badge: sample?.threat_assessment?.attack_techniques.length,
+      badge: sample?.threat_assessment?.capabilities?.length,
     },
     {
       id: "ml",
       label: "ML Classifier",
       icon: "🤖",
-      badge: sample?.ml_prediction ? `${Math.round(sample.ml_prediction.score * 100)}%` : undefined,
+      badge:
+        sample?.ml_prediction?.score != null
+          ? `${Math.round((sample.ml_prediction.score ?? 0) * 100)}%`
+          : undefined,
     },
     {
       id: "report",

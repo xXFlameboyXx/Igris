@@ -80,6 +80,21 @@ def test_static_analysis_extracts_strings_api_capabilities_and_indicators(tmp_pa
     assert "RESOURCE_PRESENT" in evidence_types
     assert indicators_response.json()["indicators"] == analysis["evidence"]
 
+    # Verify extracted string values are visible in evidence descriptions
+    string_ev = [e for e in analysis["evidence"] if e["source"] == "string_analysis"]
+    assert len(string_ev) > 0
+    # Every string evidence description must contain its extracted value
+    for sev in string_ev:
+        assert sev["related_object"] in sev["description"]
+        assert sev["technical_details"]["value"] in sev["description"]
+
+    # Verify API capability descriptions contain the concrete API name
+    import_ev = [e for e in analysis["evidence"] if e["source"] == "import_analysis"]
+    assert len(import_ev) > 0
+    for iev in import_ev:
+        assert iev["related_object"] in iev["description"]
+        assert iev["technical_details"]["api"] in iev["description"]
+
 
 def test_static_feature_vector_is_versioned_and_counts_observations(tmp_path: Path) -> None:
     with make_client(tmp_path) as client:
@@ -106,6 +121,14 @@ def test_benign_networking_api_is_evidence_not_verdict(tmp_path: Path) -> None:
     analysis = response.json()["analysis"]
     assert analysis["feature_vector"]["api_category_counts"]["networking"] == 1
     assert all("malware" not in item["description"].lower() for item in analysis["evidence"])
+    # Verify description mentions InternetOpenA
+    net_ev = [
+        e
+        for e in analysis["evidence"]
+        if e["source"] == "import_analysis" and e["related_object"] == "InternetOpenA"
+    ]
+    assert len(net_ev) == 1
+    assert "InternetOpenA" in net_ev[0]["description"]
 
 
 def test_static_analysis_handles_malformed_pe_without_crashing(tmp_path: Path) -> None:

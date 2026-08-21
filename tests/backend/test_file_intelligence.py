@@ -223,3 +223,60 @@ def test_exe_upload_and_retrieval_contract(tmp_path: Path) -> None:
         )
         assert detail["hashes"]["md5"] == hashlib.md5(pe_content, usedforsecurity=False).hexdigest()
         assert detail["status"] in ("pending", "completed", "running")
+
+
+def test_delete_sample_success_and_cleanup(tmp_path: Path) -> None:
+    pe_content = minimal_pe32_fixture()
+    with make_client(tmp_path) as client:
+        # 1. Upload sample
+        upload_resp = client.post(
+            "/api/v1/samples",
+            files={"file": ("to_delete.exe", pe_content, "application/x-dosexec")},
+        )
+        assert upload_resp.status_code == 201
+        sample_id = upload_resp.json()["sample_id"]
+
+        # 2. Verify exists
+        detail_resp = client.get(f"/api/v1/samples/{sample_id}")
+        assert detail_resp.status_code == 200
+        list_resp = client.get("/api/v1/samples")
+        assert any(s["sample_id"] == sample_id for s in list_resp.json()["samples"])
+
+        # 3. Delete sample
+        delete_resp = client.delete(f"/api/v1/samples/{sample_id}")
+        assert delete_resp.status_code == 204
+
+        # 4. Verify no longer exists
+        get_after = client.get(f"/api/v1/samples/{sample_id}")
+        assert get_after.status_code == 404
+        assert get_after.json()["error"]["code"] == "sample_not_found"
+
+        # 5. Verify removed from list
+        list_after = client.get("/api/v1/samples")
+        assert not any(s["sample_id"] == sample_id for s in list_after.json()["samples"])
+
+
+def test_delete_nonexistent_sample_returns_404(tmp_path: Path) -> None:
+    with make_client(tmp_path) as client:
+        delete_resp = client.delete("/api/v1/samples/nonexistent_sample_id_123")
+        assert delete_resp.status_code == 404
+        assert delete_resp.json()["error"]["code"] == "sample_not_found"
+
+
+def test_delete_sample_isolation(tmp_path: Path) -> None:
+    with make_client(tmp_path) as client:
+        s1 = upload(client, b"sample 1 content", "file1.bin")
+        s2 = upload(client, b"sample 2 content", "file2.bin")
+
+        # Delete s1
+        del_resp = client.delete(f"/api/v1/samples/{s1}")
+        assert del_resp.status_code == 204
+
+        # s1 is gone
+        assert client.get(f"/api/v1/samples/{s1}").status_code == 404
+
+        # s2 is completely intact
+        res2 = client.get(f"/api/v1/samples/{s2}")
+        assert res2.status_code == 200
+        assert res2.json()["safe_filename"] == "file2.bin"
+        assert res2.json()["size_bytes"] == len(b"sample 2 content")

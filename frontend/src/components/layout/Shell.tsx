@@ -29,6 +29,7 @@ import { SimilarityView } from "../views/SimilarityView";
 import { StaticAnalysisView } from "../views/StaticAnalysisView";
 import { SyntheticDemoView } from "../views/SyntheticDemoView";
 import { VerdictExplainabilityView } from "../views/VerdictExplainabilityView";
+import { ErrorBoundary } from "../common/ErrorBoundary";
 import { AnalysisCoverageBar } from "./AnalysisCoverageBar";
 import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
@@ -160,6 +161,34 @@ export function Shell() {
       notify(`Loaded specimen: ${fullSample.original_filename || fullSample.safe_filename || file.name}`);
     } catch (err) {
       notify(`Upload error: ${err instanceof Error ? err.message : String(err)}`);
+      throw err;
+    }
+  };
+
+  const handleDeleteSample = async (sampleId: string) => {
+    if (!sampleId) return;
+    try {
+      notify(`Removing specimen ${sampleId.slice(0, 8)}...`);
+      await apiClient.deleteSample(sampleId);
+
+      const updatedList = samplesList.filter((s) => s.sample_id !== sampleId);
+      setSamplesList(updatedList);
+
+      if (currentSample?.sample_id === sampleId) {
+        if (updatedList.length > 0) {
+          try {
+            const nextSample = await apiClient.getSample(updatedList[0].sample_id);
+            setCurrentSample(nextSample);
+          } catch {
+            setCurrentSample(updatedList[0]);
+          }
+        } else {
+          setCurrentSample(null);
+        }
+      }
+      notify("Specimen removed successfully.");
+    } catch (err) {
+      notify(`Failed to remove specimen: ${err instanceof Error ? err.message : String(err)}`);
       throw err;
     }
   };
@@ -368,6 +397,7 @@ export function Shell() {
         samplesList={samplesList}
         onSelectSampleId={handleSelectSampleId}
         onUploadSample={handleUploadSample}
+        onDeleteSample={handleDeleteSample}
         health={health}
         bookmarksCount={bookmarks.length}
         notesCount={notes.length}
@@ -406,123 +436,129 @@ export function Shell() {
         />
 
         <main className="view-pane" id="main-content">
-          {activeTab === "overview" && (
-            <OverviewView
-              sample={currentSample}
-              onNavigateTab={setActiveTab}
-              onRunAnalysis={handleRunAnalysis}
-              runningLayers={runningLayers}
-              onOpenUpload={() => setIsUploadOpen(true)}
-            />
-          )}
+          <ErrorBoundary
+            level="view"
+            onNavigateHome={() => setActiveTab("overview")}
+          >
+            {activeTab === "overview" && (
+              <OverviewView
+                sample={currentSample}
+                onNavigateTab={setActiveTab}
+                onRunAnalysis={handleRunAnalysis}
+                runningLayers={runningLayers}
+                onOpenUpload={() => setIsUploadOpen(true)}
+              />
+            )}
 
-          {activeTab === "pipeline" && (
-            <AnalysisPipelineView
-              sample={currentSample}
-              onNavigateTab={setActiveTab}
-              isDemoMode={isSyntheticMode}
-            />
-          )}
+            {activeTab === "pipeline" && (
+              <AnalysisPipelineView
+                sample={currentSample}
+                onNavigateTab={setActiveTab}
+                isDemoMode={isSyntheticMode}
+              />
+            )}
 
-          {activeTab === "verdict" && (
-            <VerdictExplainabilityView
-              sample={currentSample}
-              onRunAssessment={() => handleRunAnalysis("assessment")}
-              isRunning={runningLayers.assessment}
-            />
-          )}
+            {activeTab === "verdict" && (
+              <VerdictExplainabilityView
+                sample={currentSample}
+                onRunAssessment={() => handleRunAnalysis("assessment")}
+                isRunning={runningLayers.assessment}
+              />
+            )}
 
-          {activeTab === "evidence" && (
-            <EvidenceExplorerView
-              sample={currentSample}
-              onNavigateTab={setActiveTab}
-              onRunAssessment={() => handleRunAnalysis("assessment")}
-              isRunning={runningLayers.assessment}
-              onBookmarkItem={handleBookmarkEvidenceItem}
-              onAddNoteForItem={handleAddNoteForEvidenceItem}
-            />
-          )}
+            {activeTab === "evidence" && (
+              <EvidenceExplorerView
+                sample={currentSample}
+                onNavigateTab={setActiveTab}
+                onRunAssessment={() => handleRunAnalysis("assessment")}
+                isRunning={runningLayers.assessment}
+                onBookmarkItem={handleBookmarkEvidenceItem}
+                onAddNoteForItem={handleAddNoteForEvidenceItem}
+              />
+            )}
 
-          {activeTab === "static" && (
-            <StaticAnalysisView
-              sample={currentSample}
-              onRunStatic={() => handleRunAnalysis("static")}
-              isRunning={runningLayers.static}
-            />
-          )}
+            {activeTab === "static" && (
+              <StaticAnalysisView
+                sample={currentSample}
+                onRunStatic={() => handleRunAnalysis("static")}
+                isRunning={runningLayers.static}
+              />
+            )}
 
-          {activeTab === "reverse" && (
-            <ReverseEngineeringView
-              sample={currentSample}
-              onRunReverse={() => handleRunAnalysis("reverse")}
-              isRunning={runningLayers.reverse}
-              onFetchCFG={handleFetchCFG}
-            />
-          )}
+            {activeTab === "reverse" && (
+              <ReverseEngineeringView
+                sample={currentSample}
+                onRunReverse={() => handleRunAnalysis("reverse")}
+                isRunning={runningLayers.reverse}
+                onFetchCFG={handleFetchCFG}
+              />
+            )}
 
-          {activeTab === "behavior" && (
-            <BehavioralView
-              sample={currentSample}
-              onRunBehavior={() => handleRunAnalysis("behavior")}
-              isRunning={runningLayers.behavior}
-            />
-          )}
+            {activeTab === "behavior" && (
+              <BehavioralView
+                sample={currentSample}
+                onRunBehavior={() => handleRunAnalysis("behavior")}
+                isRunning={runningLayers.behavior}
+              />
+            )}
 
-          {activeTab === "similarity" && (
-            <SimilarityView
-              sample={currentSample}
-              onRunSimilarity={() => handleRunAnalysis("similarity")}
-              isRunning={runningLayers.similarity}
-            />
-          )}
+            {activeTab === "similarity" && (
+              <SimilarityView
+                sample={currentSample}
+                onRunSimilarity={() => handleRunAnalysis("similarity")}
+                isRunning={runningLayers.similarity}
+              />
+            )}
 
-          {activeTab === "attack" && (
-            <AttackMatrixView
-              sample={currentSample}
-              onRunThreat={() => handleRunAnalysis("threat")}
-              isRunning={runningLayers.threat}
-            />
-          )}
+            {activeTab === "attack" && (
+              <AttackMatrixView
+                sample={currentSample}
+                onNavigateTab={setActiveTab}
+                onRunThreat={() => handleRunAnalysis("threat")}
+                isRunning={runningLayers.threat}
+              />
+            )}
 
-          {activeTab === "ml" && (
-            <MLClassifierView
-              sample={currentSample}
-              onRunML={() => handleRunAnalysis("ml")}
-              isRunning={runningLayers.ml}
-            />
-          )}
+            {activeTab === "ml" && (
+              <MLClassifierView
+                sample={currentSample}
+                onRunML={() => handleRunAnalysis("ml")}
+                isRunning={runningLayers.ml}
+              />
+            )}
 
-          {activeTab === "report" && (
-            <InvestigationReportView sample={currentSample} />
-          )}
+            {activeTab === "report" && (
+              <InvestigationReportView sample={currentSample} />
+            )}
 
-          {activeTab === "evaluation" && (
-            <EvaluationResearchView
-              sample={currentSample}
-              onNavigateTab={setActiveTab}
-              isDemoMode={isSyntheticMode}
-            />
-          )}
+            {activeTab === "evaluation" && (
+              <EvaluationResearchView
+                sample={currentSample}
+                onNavigateTab={setActiveTab}
+                isDemoMode={isSyntheticMode}
+              />
+            )}
 
-          {activeTab === "robustness" && (
-            <RobustnessStressView
-              sample={currentSample}
-              onNavigateTab={setActiveTab}
-              isDemoMode={isSyntheticMode}
-            />
-          )}
+            {activeTab === "robustness" && (
+              <RobustnessStressView
+                sample={currentSample}
+                onNavigateTab={setActiveTab}
+                isDemoMode={isSyntheticMode}
+              />
+            )}
 
-          {activeTab === "demo" && (
-            <SyntheticDemoView
-              currentSample={currentSample}
-              onSelectSample={(s) => {
-                setCurrentSample(s);
-                setIsSyntheticMode(true);
-                notify(`Activated scenario: ${s.original_filename}`);
-              }}
-              onNavigateTab={setActiveTab}
-            />
-          )}
+            {activeTab === "demo" && (
+              <SyntheticDemoView
+                currentSample={currentSample}
+                onSelectSample={(s) => {
+                  setCurrentSample(s);
+                  setIsSyntheticMode(true);
+                  notify(`Activated scenario: ${s.original_filename}`);
+                }}
+                onNavigateTab={setActiveTab}
+              />
+            )}
+          </ErrorBoundary>
         </main>
       </div>
 

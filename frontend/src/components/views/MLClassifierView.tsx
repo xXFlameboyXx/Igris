@@ -29,7 +29,7 @@ export function MLClassifierView({
     );
   }
 
-  const scorePct = Math.round(ml.score * 100);
+  const scorePct = Math.round((ml.score ?? 0) * 100);
   const isMalware = ml.prediction === "malware";
 
   return (
@@ -42,7 +42,7 @@ export function MLClassifierView({
           </p>
         </div>
         <div className="model-version-tag">
-          Model: <code>{ml.model_version}</code> (Schema: <code>{ml.feature_schema_version}</code>)
+          Model: <code>{ml.model_version || "default"}</code> (Schema: <code>{ml.feature_schema_version || "v1"}</code>)
         </div>
       </div>
 
@@ -58,7 +58,7 @@ export function MLClassifierView({
               {isMalware ? "⛔ MALWARE" : "✅ BENIGN"}
             </span>
             <span className="badge badge-neutral badge-sm">
-              Uncertainty: {ml.uncertainty.toUpperCase()}
+              Uncertainty: {(ml.uncertainty || "unknown").toUpperCase()}
             </span>
           </div>
 
@@ -78,7 +78,7 @@ export function MLClassifierView({
 
         <div className="ml-explanation-col">
           <h3 className="subheading">Model Explanation</h3>
-          <p className="ml-explanation-text">{ml.explanation}</p>
+          <p className="ml-explanation-text">{ml.explanation || "No explanation provided."}</p>
         </div>
       </section>
 
@@ -102,8 +102,8 @@ export function MLClassifierView({
               </tr>
             </thead>
             <tbody>
-              {ml.important_contributing_features.map(([featureName, weight], idx) => {
-                const weightPct = Math.round(weight * 100);
+              {(ml.important_contributing_features || []).map(([featureName, weight], idx) => {
+                const weightPct = Math.round((weight ?? 0) * 100);
                 return (
                   <tr key={featureName}>
                     <td style={{ width: "60px", textAlign: "center" }}>#{idx + 1}</td>
@@ -111,7 +111,7 @@ export function MLClassifierView({
                       <code>{featureName}</code>
                     </td>
                     <td style={{ width: "160px" }}>
-                      <strong>{(weight * 100).toFixed(1)}%</strong>
+                      <strong>{((weight ?? 0) * 100).toFixed(1)}%</strong>
                     </td>
                     <td style={{ width: "240px" }}>
                       <div className="feature-bar-track">
@@ -135,7 +135,7 @@ export function MLClassifierView({
           Machine Learning Safety Constraints & Boundaries
         </h3>
         <ul className="limitations-list">
-          {ml.limitations.map((lim, idx) => (
+          {(ml.limitations || []).map((lim, idx) => (
             <li key={idx} className="limitation-item">
               <span className="lim-icon" aria-hidden="true">🔒</span>
               <span>{lim}</span>

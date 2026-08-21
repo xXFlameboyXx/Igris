@@ -429,35 +429,43 @@ def _attach_function_evidence(
             }
         ]
         if suspicious_strings:
+            str_list = ", ".join(f"'{s}'" for s in suspicious_strings[:3])
             evidence.append(
                 _function_evidence(
                     ReverseEvidenceType.SUSPICIOUS_STRING_REFERENCE,
                     function.function_id,
-                    "Function references strings with persistence, credential, "
-                    "or interpreter relevance.",
+                    (
+                        f"Function '{function.function_id}' references "
+                        f"suspicious string(s): {str_list}."
+                    ),
                     0.64,
                     {"strings": suspicious_strings},
                     related_strings=suspicious_strings,
                 )
             )
         if sensitive_apis:
+            api_list = ", ".join(f"'{a}'" for a in sensitive_apis[:3])
             evidence.append(
                 _function_evidence(
                     ReverseEvidenceType.SENSITIVE_CAPABILITY_CALL,
                     function.function_id,
-                    "Function references APIs mapped to sensitive static capabilities.",
+                    f"Function '{function.function_id}' references sensitive API(s): {api_list}.",
                     0.68,
                     {"apis": sensitive_apis},
                     related_apis=sensitive_apis,
                 )
             )
         if suspicious_strings and sensitive_apis:
+            str_list = ", ".join(f"'{s}'" for s in suspicious_strings[:2])
+            api_list = ", ".join(f"'{a}'" for a in sensitive_apis[:2])
             evidence.append(
                 _function_evidence(
                     ReverseEvidenceType.STRING_API_CORRELATION,
                     function.function_id,
-                    "Function-level correlation links suspicious strings to sensitive "
-                    "API capability.",
+                    (
+                        f"Function '{function.function_id}' correlates string(s) "
+                        f"({str_list}) with API(s) ({api_list})."
+                    ),
                     0.78,
                     {"strings": suspicious_strings, "apis": sensitive_apis},
                     related_strings=suspicious_strings,
@@ -468,11 +476,20 @@ def _attach_function_evidence(
             api in {"VirtualAlloc", "VirtualProtect", "WriteProcessMemory"}
             for api in sensitive_apis
         ):
+            mem_apis = [
+                a
+                for a in sensitive_apis
+                if a in {"VirtualAlloc", "VirtualProtect", "WriteProcessMemory"}
+            ]
+            mem_list = ", ".join(f"'{a}'" for a in mem_apis)
             evidence.append(
                 _function_evidence(
                     ReverseEvidenceType.EXECUTABLE_MEMORY_OPERATION,
                     function.function_id,
-                    "Function references executable memory or process memory operations.",
+                    (
+                        f"Function '{function.function_id}' references "
+                        f"executable memory operation(s): {mem_list}."
+                    ),
                     0.72,
                     {"apis": sensitive_apis},
                     related_apis=sensitive_apis,
@@ -483,7 +500,10 @@ def _attach_function_evidence(
                 _function_evidence(
                     ReverseEvidenceType.UNUSUAL_CONTROL_FLOW,
                     function.function_id,
-                    "Function has elevated static control-flow complexity.",
+                    (
+                        f"Function '{function.function_id}' has elevated "
+                        f"control-flow complexity ({function.cyclomatic_complexity})."
+                    ),
                     0.55,
                     {"cyclomatic_complexity": function.cyclomatic_complexity},
                 )

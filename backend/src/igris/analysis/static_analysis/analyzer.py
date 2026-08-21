@@ -110,6 +110,11 @@ def _build_evidence(
             if string.category == "suspicious_keyword"
             else EvidenceType.INTERESTING_STRING
         )
+        desc = (
+            f"Extracted {string.category} string: '{string.value}'"
+            if string.value
+            else f"Extracted {string.category} string."
+        )
         evidence.append(
             _evidence(
                 evidence_type,
@@ -118,8 +123,12 @@ def _build_evidence(
                 if evidence_type == EvidenceType.INTERESTING_STRING
                 else EvidenceSeverity.MEDIUM,
                 confidence=0.7,
-                description=f"Extracted {string.category} string.",
-                details={"value": string.value, "encoding": string.encoding},
+                description=desc,
+                details={
+                    "value": string.value,
+                    "encoding": string.encoding,
+                    "category": str(string.category),
+                },
                 location=Location(offset=string.offset, section=string.section),
                 related_object=string.value,
             )
@@ -128,13 +137,18 @@ def _build_evidence(
     for imported in imports:
         if imported.category == "other":
             continue
+        desc = (
+            f"Observed {imported.category} API capability: '{imported.name}'"
+            if imported.name
+            else f"Observed {imported.category} API capability."
+        )
         evidence.append(
             _evidence(
                 EvidenceType.API_CAPABILITY,
                 source="import_analysis",
                 severity=EvidenceSeverity.LOW,
                 confidence=0.75 if imported.source == "import_table" else 0.55,
-                description=f"Observed {imported.category} API capability.",
+                description=desc,
                 details={
                     "api": imported.name,
                     "module": imported.module,
@@ -186,7 +200,10 @@ def _section_evidence(sections: list[SectionMetadata], settings: Settings) -> li
                     source="section_analysis",
                     severity=EvidenceSeverity.MEDIUM,
                     confidence=0.72,
-                    description="Section name is commonly associated with unusual layouts.",
+                    description=(
+                        f"Section name '{section.name}' is commonly "
+                        f"associated with unusual layouts."
+                    ),
                     details={"section": section.name},
                     location=Location(offset=section.raw_offset, section=section.name),
                     related_object=section.name,
@@ -199,7 +216,7 @@ def _section_evidence(sections: list[SectionMetadata], settings: Settings) -> li
                     source="section_analysis",
                     severity=EvidenceSeverity.MEDIUM,
                     confidence=0.82,
-                    description="Section is both writable and executable.",
+                    description=f"Section '{section.name}' is both writable and executable.",
                     details={
                         "section": section.name,
                         "characteristics": section.characteristics,
@@ -219,7 +236,10 @@ def _section_evidence(sections: list[SectionMetadata], settings: Settings) -> li
                     source="section_analysis",
                     severity=EvidenceSeverity.MEDIUM,
                     confidence=0.78,
-                    description="Section has high Shannon entropy.",
+                    description=(
+                        f"Section '{section.name}' has high "
+                        f"Shannon entropy ({section.entropy:.2f})."
+                    ),
                     details={"section": section.name, "entropy": section.entropy},
                     location=Location(offset=section.raw_offset, section=section.name),
                     related_object=section.name,
@@ -231,7 +251,10 @@ def _section_evidence(sections: list[SectionMetadata], settings: Settings) -> li
                     source="packing_indicators",
                     severity=EvidenceSeverity.LOW,
                     confidence=0.62,
-                    description="High section entropy is a possible packing indicator.",
+                    description=(
+                        f"High section entropy in '{section.name}' "
+                        f"({section.entropy:.2f}) is a possible packing indicator."
+                    ),
                     details={"section": section.name, "entropy": section.entropy},
                     location=Location(offset=section.raw_offset, section=section.name),
                     related_object=section.name,
@@ -248,7 +271,9 @@ def _section_evidence(sections: list[SectionMetadata], settings: Settings) -> li
                     source="section_analysis",
                     severity=EvidenceSeverity.LOW,
                     confidence=0.6,
-                    description="Section virtual size is much larger than raw size.",
+                    description=(
+                        f"Section '{section.name}' virtual size is much larger than raw size."
+                    ),
                     details={
                         "section": section.name,
                         "virtual_size": section.virtual_size,
@@ -265,7 +290,7 @@ def _section_evidence(sections: list[SectionMetadata], settings: Settings) -> li
                     source="section_analysis",
                     severity=EvidenceSeverity.LOW,
                     confidence=0.58,
-                    description="Section raw offsets are not in ascending order.",
+                    description=f"Section '{section.name}' raw offsets are not in ascending order.",
                     details={"section": section.name, "raw_offset": section.raw_offset},
                     location=Location(offset=section.raw_offset, section=section.name),
                     related_object=section.name,
@@ -279,13 +304,18 @@ def _section_evidence(sections: list[SectionMetadata], settings: Settings) -> li
 def _pe_feature_evidence(pe_features: PEStaticFeatures) -> list[StaticEvidence]:
     evidence: list[StaticEvidence] = []
     if pe_features.overlay_present:
+        desc = (
+            f"Data exists after final PE section (overlay: {pe_features.overlay_size} bytes)."
+            if pe_features.overlay_size
+            else "Data exists after the final PE section."
+        )
         evidence.append(
             _evidence(
                 EvidenceType.OVERLAY_PRESENT,
                 source="pe_features",
                 severity=EvidenceSeverity.LOW,
                 confidence=0.7,
-                description="Data exists after the final PE section.",
+                description=desc,
                 details={"overlay_size": pe_features.overlay_size},
             )
         )
@@ -307,18 +337,27 @@ def _pe_feature_evidence(pe_features: PEStaticFeatures) -> list[StaticEvidence]:
                 source="packing_indicators",
                 severity=EvidenceSeverity.LOW,
                 confidence=0.66,
-                description="Writable executable sections are a possible packing indicator.",
+                description=(
+                    f"Writable executable sections "
+                    f"({pe_features.writable_executable_section_count}) "
+                    "are a possible packing indicator."
+                ),
                 details={"count": pe_features.writable_executable_section_count},
             )
         )
     if pe_features.suspicious_entry_point_section:
+        desc = (
+            f"Entry point falls in unusual section: '{pe_features.entry_point_section}'."
+            if pe_features.entry_point_section
+            else "Entry point falls in an unusual section."
+        )
         evidence.append(
             _evidence(
                 EvidenceType.SUSPICIOUS_ENTRY_POINT_SECTION,
                 source="pe_features",
                 severity=EvidenceSeverity.MEDIUM,
                 confidence=0.68,
-                description="Entry point falls in an unusual section.",
+                description=desc,
                 details={"entry_point_section": pe_features.entry_point_section},
                 related_object=pe_features.entry_point_section,
             )

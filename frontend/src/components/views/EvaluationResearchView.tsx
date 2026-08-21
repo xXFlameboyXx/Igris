@@ -546,13 +546,13 @@ export const EvaluationResearchView: React.FC<EvaluationResearchViewProps> = ({
             Root cause analysis of misclassifications under strict evidence categorization.
           </p>
 
-          {exp.error_analysis.length === 0 ? (
+          {(!exp.error_analysis || exp.error_analysis.length === 0) ? (
             <div style={{ textAlign: "center", padding: "2rem", color: "var(--color-text-muted)" }}>
               No classification errors identified in the evaluated test split.
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-              {exp.error_analysis.map((err) => (
+              {(exp.error_analysis || []).map((err) => (
                 <div
                   key={err.sample_id}
                   style={{
@@ -592,12 +592,12 @@ export const EvaluationResearchView: React.FC<EvaluationResearchViewProps> = ({
             🔒 Reproducibility Parameters
           </h3>
           <ul style={{ margin: 0, paddingLeft: "1.25rem", fontSize: "0.85rem", color: "var(--color-text-muted)", display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-            <li><strong>Experiment ID:</strong> <code>{exp.reproducibility.experiment_id}</code></li>
-            <li><strong>Code Version:</strong> <code>{exp.reproducibility.code_version}</code></li>
-            <li><strong>Pipeline Version:</strong> <code>{exp.reproducibility.pipeline_version}</code></li>
-            <li><strong>Dataset SHA-256:</strong> <code style={{ fontSize: "0.75rem" }}>{exp.reproducibility.dataset_hash.slice(0, 16)}...</code></li>
-            <li><strong>Random Seed:</strong> <code>{exp.reproducibility.random_seed}</code></li>
-            <li><strong>Split Strategy:</strong> <code>{exp.reproducibility.split_strategy}</code></li>
+            <li><strong>Experiment ID:</strong> <code>{exp.reproducibility?.experiment_id || "N/A"}</code></li>
+            <li><strong>Code Version:</strong> <code>{exp.reproducibility?.code_version || "1.0.0"}</code></li>
+            <li><strong>Pipeline Version:</strong> <code>{exp.reproducibility?.pipeline_version || "v1"}</code></li>
+            <li><strong>Dataset SHA-256:</strong> <code style={{ fontSize: "0.75rem" }}>{(exp.reproducibility?.dataset_hash || "").slice(0, 16)}...</code></li>
+            <li><strong>Random Seed:</strong> <code>{exp.reproducibility?.random_seed ?? 42}</code></li>
+            <li><strong>Split Strategy:</strong> <code>{exp.reproducibility?.split_strategy || "stratified"}</code></li>
           </ul>
         </div>
 
@@ -607,7 +607,7 @@ export const EvaluationResearchView: React.FC<EvaluationResearchViewProps> = ({
             🛡️ Threats to Empirical Validity
           </h3>
           <ul style={{ margin: 0, paddingLeft: "1.25rem", fontSize: "0.85rem", color: "var(--color-text-muted)", display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-            {exp.threats_to_validity.map((threat, idx) => (
+            {(exp.threats_to_validity || []).map((threat, idx) => (
               <li key={idx}>{threat}</li>
             ))}
           </ul>

@@ -46,7 +46,7 @@ def assess(client: TestClient, sample_id: str) -> dict[str, object]:
 def test_mapping_dataset_is_versioned_and_loadable() -> None:
     dataset = load_mapping_dataset(Path("config/intelligence/attack_mappings.json"))
 
-    assert dataset.mapping_version == "attack-mapping/v1"
+    assert dataset.mapping_version == "attack-mapping/v2"
     assert dataset.attack_version == "ATT&CK Enterprise v16.1"
     assert {rule.capability for rule in dataset.rules} >= {
         CapabilityCategory.EXECUTION,
@@ -85,8 +85,15 @@ def test_single_evidence_maps_only_to_supported_possible_capability(tmp_path: Pa
     capability_categories = {item["category"] for item in result["capabilities"]}
     technique_ids = {item["technique_id"] for item in result["techniques"]}
     assert capability_categories == {"Execution"}
-    assert technique_ids == {"T1059"}
+    assert technique_ids == {"T1059.001"}
     assert result["capabilities"][0]["label"] == "POSSIBLE"
+    tech = result["techniques"][0]
+    assert tech["subtechnique_id"] == "T1059.001"
+    assert tech["subtechnique_name"] == "PowerShell"
+    assert "PowerShell" in tech["description"]
+    assert "powershell" in tech["hypothesis"].lower()
+    assert len(tech["supporting_evidence"]) > 0
+    assert any("powershell" in (e.get("value") or "").lower() for e in tech["supporting_evidence"])
     assert "OBSERVED:" in result["narrative"]
     assert "INFERRED:" in result["narrative"]
     assert "POSSIBLE:" in result["narrative"]
@@ -109,8 +116,12 @@ def test_multiple_corroborating_evidence_maps_capabilities_and_attack(tmp_path: 
         "Credential Access",
         "Command and Control",
     } <= capability_categories
-    assert {"T1059", "T1547.001", "T1027", "T1555", "T1071"} <= technique_ids
+    assert {"T1059.001", "T1547.001", "T1027", "T1555", "T1071.001"} <= technique_ids
     assert all(item["confidence"] < 1.0 for item in first["techniques"])
+    assert all(len(item["description"]) > 10 for item in first["techniques"])
+    assert all(len(item["how_it_works"]) > 10 for item in first["techniques"])
+    assert all(len(item["why_igris_mapped"]) > 5 for item in first["techniques"])
+    assert all(len(item["hypothesis"]) > 10 for item in first["techniques"])
     assert "not actor attribution" in first["narrative"]
 
 
@@ -125,7 +136,10 @@ def test_reverse_engineering_evidence_can_support_process_injection_mapping(
     assert "T1055" in technique_ids
     injection = next(item for item in result["techniques"] if item["technique_id"] == "T1055")
     assert injection["source_engine"] == "reverse_analysis"
-    assert injection["confidence"] == 0.7
+    assert injection["confidence"] == 0.75
+    assert injection["label"] == "INFERRED"
+    assert "process" in injection["description"].lower()
+    assert "inferred" in injection["hypothesis"].lower()
 
 
 def test_false_mapping_prevention_requires_correlated_network_evidence(
@@ -137,8 +151,8 @@ def test_false_mapping_prevention_requires_correlated_network_evidence(
         url_only = assess(client, url_only_id)
         api_only = assess(client, api_only_id)
 
-    assert "T1071" not in {item["technique_id"] for item in url_only["techniques"]}
-    assert "T1071" not in {item["technique_id"] for item in api_only["techniques"]}
+    assert not any(item["technique_id"].startswith("T1071") for item in url_only["techniques"])
+    assert not any(item["technique_id"].startswith("T1071") for item in api_only["techniques"])
 
 
 def test_cached_behavior_evidence_can_support_attack_mapping(tmp_path: Path) -> None:
@@ -157,7 +171,7 @@ def test_cached_behavior_evidence_can_support_attack_mapping(tmp_path: Path) -> 
     techniques = {item["technique_id"]: item for item in result["techniques"]}
     assert "T1071" in techniques
     assert techniques["T1071"]["source_engine"] == "behavior_analysis"
-    assert techniques["T1071"]["confidence"] == 0.45
+    assert techniques["T1071"]["confidence"] == 0.55
     node_sources = {
         node["details"].get("source")
         for node in result["evidence_graph"]["nodes"]
@@ -173,9 +187,8 @@ def test_suspicious_looking_benign_case_stays_hypothetical(tmp_path: Path) -> No
         result = assess(client, sample_id)
 
     techniques = {item["technique_id"]: item for item in result["techniques"]}
-    assert "T1071" in techniques
-    assert techniques["T1071"]["confidence"] == 0.6
-    assert "benign updaters may look similar" in techniques["T1071"]["explanation"]
+    assert "T1071.001" in techniques
+    assert techniques["T1071.001"]["confidence"] == 0.62
     assert "not actor attribution" in result["narrative"]
 
 

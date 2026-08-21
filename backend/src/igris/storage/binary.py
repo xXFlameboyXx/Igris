@@ -37,6 +37,14 @@ class LocalSampleStorage:
             raise FileNotFoundError(msg)
         return candidate
 
+    def delete(self, storage_ref: str) -> bool:
+        try:
+            path = self.resolve(storage_ref)
+            path.unlink(missing_ok=True)
+            return True
+        except (FileNotFoundError, OSError):
+            return False
+
 
 def _remove_execute_bits(path: Path) -> None:
     if os.name == "nt":

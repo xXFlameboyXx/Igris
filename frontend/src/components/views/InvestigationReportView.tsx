@@ -23,7 +23,7 @@ export function InvestigationReportView({ sample }: InvestigationReportViewProps
   const assessment = sample.malware_assessment;
   const verdict = assessment?.verdict || "UNKNOWN";
   const riskLevel = assessment?.risk_level || "UNKNOWN";
-  const riskScore = assessment?.risk_score.score ?? 0;
+  const riskScore = assessment?.risk_score?.score ?? 0;
   const confidence = assessment?.confidence;
   const explanation = assessment?.explanation;
   const evidenceSummary = assessment?.evidence_summary;
@@ -36,8 +36,8 @@ export function InvestigationReportView({ sample }: InvestigationReportViewProps
     const reportMd = `
 # IGRIS MALWARE ASSESSMENT REPORT
 
-**Sample:** ${sample.original_filename}
-**SHA-256:** ${sample.hashes.sha256}
+**Sample:** ${sample.original_filename || sample.safe_filename || sample.sample_id}
+**SHA-256:** ${sample.hashes?.sha256 || "N/A"}
 **Assessment Verdict:** ${verdict} (Risk Level: ${riskLevel}, Evidence Risk Score: ${riskScore}/100)
 **Generated:** ${assessment?.created_at || new Date().toISOString()}
 
@@ -47,12 +47,12 @@ export function InvestigationReportView({ sample }: InvestigationReportViewProps
 ${explanation?.summary || "No assessment generated."}
 
 ## 2. File Identification
-- **Original Filename:** ${sample.original_filename}
-- **Safe Filename:** ${sample.safe_filename}
-- **Size:** ${sample.size_bytes} bytes (${(sample.size_bytes / 1024).toFixed(1)} KB)
-- **SHA-256:** ${sample.hashes.sha256}
-- **SHA-1:** ${sample.hashes.sha1}
-- **MD5:** ${sample.hashes.md5}
+- **Original Filename:** ${sample.original_filename || sample.safe_filename || sample.sample_id}
+- **Safe Filename:** ${sample.safe_filename || "N/A"}
+- **Size:** ${sample.size_bytes || 0} bytes (${((sample.size_bytes || 0) / 1024).toFixed(1)} KB)
+- **SHA-256:** ${sample.hashes?.sha256 || "N/A"}
+- **SHA-1:** ${sample.hashes?.sha1 || "N/A"}
+- **MD5:** ${sample.hashes?.md5 || "N/A"}
 - **File Format:** ${sample.file_metadata?.file_format || "Unknown"} (${sample.file_metadata?.architecture || "x86_64"})
 
 ## 3. Confidence Metrics
@@ -64,19 +64,19 @@ ${explanation?.summary || "No assessment generated."}
 
 ## 4. Epistemological Findings
 ### Observed Facts
-${explanation?.observed_findings.map((f) => `- [OBSERVED] ${f}`).join("\n") || "- None"}
+${(explanation?.observed_findings || []).map((f) => `- [OBSERVED] ${f}`).join("\n") || "- None"}
 
 ### Inferred Deductions
-${explanation?.inferred_findings.map((f) => `- [INFERRED] ${f}`).join("\n") || "- None"}
+${(explanation?.inferred_findings || []).map((f) => `- [INFERRED] ${f}`).join("\n") || "- None"}
 
 ### Possible Hypotheses
-${explanation?.possible_hypotheses.map((f) => `- [POSSIBLE] ${f}`).join("\n") || "- None"}
+${(explanation?.possible_hypotheses || []).map((f) => `- [POSSIBLE] ${f}`).join("\n") || "- None"}
 
-## 5. Traceable Evidence Items (${evidenceSummary?.evidence_items.length || 0})
-${evidenceSummary?.evidence_items.map((e) => `- [${e.category}] [${e.observation_level}] [${e.role}] ${e.statement} (Provenance: ${e.provenance})`).join("\n") || "- None"}
+## 5. Traceable Evidence Items (${(evidenceSummary?.evidence_items || []).length})
+${(evidenceSummary?.evidence_items || []).map((e) => `- [${e.category}] [${e.observation_level}] [${e.role}] ${e.statement} (Provenance: ${e.provenance})`).join("\n") || "- None"}
 
 ## 6. Analytical Limitations & Attribution Guardrails
-${assessment?.limitations.map((l) => `- ${l}`).join("\n") || "- None"}
+${(assessment?.limitations || []).map((l) => `- ${l}`).join("\n") || "- None"}
     `.trim();
 
     navigator.clipboard.writeText(reportMd);
@@ -180,25 +180,25 @@ ${assessment?.limitations.map((l) => `- ${l}`).join("\n") || "- None"}
             <tbody>
               <tr>
                 <th>Original Filename</th>
-                <td><code>{sample.original_filename}</code></td>
+                <td><code>{sample.original_filename || sample.safe_filename || sample.sample_id}</code></td>
                 <th>Safe Storage Ref</th>
-                <td><code>{sample.safe_filename}</code></td>
+                <td><code>{sample.safe_filename || "N/A"}</code></td>
               </tr>
               <tr>
                 <th>SHA-256 Hash</th>
                 <td colSpan={3}>
-                  <code className="break-all">{sample.hashes.sha256}</code>
+                  <code className="break-all">{sample.hashes?.sha256 || "N/A"}</code>
                 </td>
               </tr>
               <tr>
                 <th>SHA-1 Hash</th>
-                <td><code>{sample.hashes.sha1}</code></td>
+                <td><code>{sample.hashes?.sha1 || "N/A"}</code></td>
                 <th>MD5 Hash</th>
-                <td><code>{sample.hashes.md5}</code></td>
+                <td><code>{sample.hashes?.md5 || "N/A"}</code></td>
               </tr>
               <tr>
                 <th>File Size</th>
-                <td>{sample.size_bytes.toLocaleString()} bytes ({(sample.size_bytes / 1024).toFixed(1)} KB)</td>
+                <td>{(sample.size_bytes || 0).toLocaleString()} bytes ({((sample.size_bytes || 0) / 1024).toFixed(1)} KB)</td>
                 <th>Format & Architecture</th>
                 <td className="uppercase">{sample.file_metadata?.file_format || "PE"} ({sample.file_metadata?.architecture || "x86_64"})</td>
               </tr>
@@ -211,9 +211,9 @@ ${assessment?.limitations.map((l) => `- ${l}`).join("\n") || "- None"}
           <h2 className="report-section-title">3. Epistemological Findings Breakdown</h2>
 
           <div className="report-ep-block">
-            <h3>3.1 Directly Observed Telemetry Facts ({explanation?.observed_findings.length || 0})</h3>
+            <h3>3.1 Directly Observed Telemetry Facts ({(explanation?.observed_findings || []).length})</h3>
             <ul className="report-list">
-              {explanation?.observed_findings.map((f, i) => (
+              {(explanation?.observed_findings || []).map((f, i) => (
                 <li key={i}>
                   <ObservationLevelBadge level="OBSERVED" /> <span>{f}</span>
                 </li>
@@ -225,9 +225,9 @@ ${assessment?.limitations.map((l) => `- ${l}`).join("\n") || "- None"}
           </div>
 
           <div className="report-ep-block">
-            <h3>3.2 Analytical Inferences & Rule Detections ({explanation?.inferred_findings.length || 0})</h3>
+            <h3>3.2 Analytical Inferences & Rule Detections ({(explanation?.inferred_findings || []).length})</h3>
             <ul className="report-list">
-              {explanation?.inferred_findings.map((f, i) => (
+              {(explanation?.inferred_findings || []).map((f, i) => (
                 <li key={i}>
                   <ObservationLevelBadge level="INFERRED" /> <span>{f}</span>
                 </li>
@@ -239,9 +239,9 @@ ${assessment?.limitations.map((l) => `- ${l}`).join("\n") || "- None"}
           </div>
 
           <div className="report-ep-block">
-            <h3>3.3 Potential Cluster Hypotheses ({explanation?.possible_hypotheses.length || 0})</h3>
+            <h3>3.3 Potential Cluster Hypotheses ({(explanation?.possible_hypotheses || []).length})</h3>
             <ul className="report-list">
-              {explanation?.possible_hypotheses.map((f, i) => (
+              {(explanation?.possible_hypotheses || []).map((f, i) => (
                 <li key={i}>
                   <ObservationLevelBadge level="POSSIBLE" /> <span>{f}</span>
                 </li>
@@ -256,7 +256,7 @@ ${assessment?.limitations.map((l) => `- ${l}`).join("\n") || "- None"}
         {/* Section 4: Complete Traceable Evidence Table */}
         <section className="report-section">
           <h2 className="report-section-title">
-            4. Multi-Layer Traceable Evidence Matrix ({evidenceSummary?.evidence_items.length || 0})
+            4. Multi-Layer Traceable Evidence Matrix ({(evidenceSummary?.evidence_items || []).length})
           </h2>
           <table className="report-evidence-table">
             <thead>
@@ -269,7 +269,7 @@ ${assessment?.limitations.map((l) => `- ${l}`).join("\n") || "- None"}
               </tr>
             </thead>
             <tbody>
-              {evidenceSummary?.evidence_items.map((e) => (
+              {(evidenceSummary?.evidence_items || []).map((e) => (
                 <tr key={e.evidence_id}>
                   <td><CategoryBadge category={e.category} /></td>
                   <td><ObservationLevelBadge level={e.observation_level} /></td>
@@ -287,7 +287,7 @@ ${assessment?.limitations.map((l) => `- ${l}`).join("\n") || "- None"}
         {/* Section 5: Analyst-Authored Notes */}
         <section className="report-section">
           <h2 className="report-section-title">
-            5. Analyst-Authored Notes & Curated Bookmarks ({sample.notes?.length || 0} notes, {sample.bookmarks?.length || 0} bookmarks)
+            5. Analyst-Authored Notes & Curated Bookmarks ({(sample.notes || []).length} notes, {(sample.bookmarks || []).length} bookmarks)
           </h2>
           <div className="report-analyst-notice">
             <small>
@@ -295,17 +295,17 @@ ${assessment?.limitations.map((l) => `- ${l}`).join("\n") || "- None"}
             </small>
           </div>
 
-          {sample.notes && sample.notes.length > 0 ? (
+          {(sample.notes || []).length > 0 ? (
             <div className="report-notes-list" style={{ marginTop: "12px", display: "flex", flexDirection: "column", gap: "10px" }}>
-              {sample.notes.map((note) => (
+              {(sample.notes || []).map((note) => (
                 <div key={note.note_id} className="report-note-item" style={{ background: "rgba(255, 255, 255, 0.03)", padding: "10px", borderRadius: "4px", borderLeft: "3px solid var(--accent-orange, #f59e0b)" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
                     <strong>{note.title}</strong>
                     <span style={{ fontSize: "12px", opacity: 0.7 }}>👤 {note.author} • {new Date(note.created_at).toLocaleDateString()}</span>
                   </div>
                   <p style={{ margin: "4px 0 6px 0" }}>{note.content}</p>
-                  {note.attached_evidence_ids.length > 0 && (
-                    <small style={{ opacity: 0.8 }}>Attached: {note.attached_evidence_ids.join(", ")}</small>
+                  {(note.attached_evidence_ids || []).length > 0 && (
+                    <small style={{ opacity: 0.8 }}>Attached: {(note.attached_evidence_ids || []).join(", ")}</small>
                   )}
                 </div>
               ))}
@@ -319,7 +319,7 @@ ${assessment?.limitations.map((l) => `- ${l}`).join("\n") || "- None"}
         <section className="report-section">
           <h2 className="report-section-title">6. Analytical Guardrails & Boundary Conditions</h2>
           <ul className="report-limitations-list">
-            {assessment?.limitations.map((lim, idx) => (
+            {(assessment?.limitations || []).map((lim, idx) => (
               <li key={idx}>🔒 {lim}</li>
             ))}
           </ul>
@@ -327,7 +327,7 @@ ${assessment?.limitations.map((l) => `- ${l}`).join("\n") || "- None"}
 
         <footer className="report-doc-footer">
           <span>IGRIS Explainable Malware Analysis Platform</span>
-          <span>Dossier Key: {sample.hashes.sha256.slice(0, 16)}</span>
+          <span>Dossier Key: {(sample.hashes?.sha256 || sample.sample_id).slice(0, 16)}</span>
         </footer>
       </article>
     </div>

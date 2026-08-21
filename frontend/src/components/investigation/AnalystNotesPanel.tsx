@@ -108,8 +108,8 @@ export function AnalystNotesPanel({
     setTitle(note.title);
     setContent(note.content);
     setAuthor(note.author);
-    setTagsInput(note.tags.join(", "));
-    setAttachedEvidenceInput(note.attached_evidence_ids.join(", "));
+    setTagsInput((note.tags || []).join(", "));
+    setAttachedEvidenceInput((note.attached_evidence_ids || []).join(", "));
     setShowAddModal(false);
   };
 
@@ -126,7 +126,7 @@ export function AnalystNotesPanel({
           <div className="drawer-title-group">
             <span className="drawer-icon" aria-hidden="true">📝</span>
             <h3 id="notes-drawer-title" className="drawer-title">
-              Analyst Notes ({notes.length})
+              Analyst Notes ({(notes || []).length})
             </h3>
           </div>
           <div className="drawer-actions">
@@ -168,14 +168,14 @@ export function AnalystNotesPanel({
         </div>
 
         <div className="drawer-body">
-          {notes.length === 0 ? (
+          {(notes || []).length === 0 ? (
             <EmptyState
               title="No Analyst Notes"
               message="Record hypotheses, triage notes, external threat intel correlations, or investigation summaries."
             />
           ) : (
             <ul className="note-list" role="list">
-              {notes.map((n) => (
+              {(notes || []).map((n) => (
                 <li key={n.note_id} className="note-card">
                   <div className="note-card-header">
                     <div className="note-author-meta">
@@ -212,21 +212,21 @@ export function AnalystNotesPanel({
                   <h4 className="note-card-title">{n.title}</h4>
                   <div className="note-card-body">{n.content}</div>
 
-                  {(n.tags.length > 0 || n.attached_evidence_ids.length > 0) && (
+                  {((n.tags || []).length > 0 || (n.attached_evidence_ids || []).length > 0) && (
                     <div className="note-card-footer">
-                      {n.tags.length > 0 && (
+                      {(n.tags || []).length > 0 && (
                         <div className="note-tags">
-                          {n.tags.map((tag, idx) => (
+                          {(n.tags || []).map((tag, idx) => (
                             <span key={idx} className="badge badge-neutral badge-xs">
                               #{tag}
                             </span>
                           ))}
                         </div>
                       )}
-                      {n.attached_evidence_ids.length > 0 && (
+                      {(n.attached_evidence_ids || []).length > 0 && (
                         <div className="note-attached-evidence">
                           <small>Attached Evidence:</small>
-                          {n.attached_evidence_ids.map((eId, idx) => (
+                          {(n.attached_evidence_ids || []).map((eId, idx) => (
                             <code key={idx} className="evidence-ref-pill">
                               {eId}
                             </code>

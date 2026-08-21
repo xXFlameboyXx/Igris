@@ -202,7 +202,7 @@ export const RobustnessStressView: React.FC<RobustnessStressViewProps> = ({
         <div className="card" style={{ textAlign: "center", padding: "1.25rem" }}>
           <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>Controlled Transformations</span>
           <div style={{ fontSize: "1.75rem", fontWeight: 700, color: "var(--color-text-bright)", marginTop: "0.25rem" }}>
-            {activeReport.matrix_rows.length}
+            {(activeReport.matrix_rows || []).length}
           </div>
           <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>Binary & Metadata Mutations</span>
         </div>
@@ -210,7 +210,7 @@ export const RobustnessStressView: React.FC<RobustnessStressViewProps> = ({
         <div className="card" style={{ textAlign: "center", padding: "1.25rem" }}>
           <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>Complex Benign Archetypes</span>
           <div style={{ fontSize: "1.75rem", fontWeight: 700, color: "var(--color-text-bright)", marginTop: "0.25rem" }}>
-            {activeReport.false_positive_tests.length}
+            {(activeReport.false_positive_tests || []).length}
           </div>
           <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>Admin / Debugger / Installers</span>
         </div>

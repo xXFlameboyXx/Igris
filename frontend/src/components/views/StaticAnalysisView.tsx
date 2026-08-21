@@ -99,7 +99,13 @@ export function StaticAnalysisView({
   ];
 
   // Strings Table
-  const stringRows = (staticAnalysis?.strings_found || []).map((str, idx) => ({ id: idx, value: str }));
+  const extractedStringsList: string[] = Array.isArray(staticAnalysis?.strings_found)
+    ? staticAnalysis.strings_found
+    : Array.isArray(staticAnalysis?.strings)
+    ? staticAnalysis.strings.map((s) => (typeof s === "string" ? s : s?.value || String(s)))
+    : [];
+
+  const stringRows = extractedStringsList.map((str, idx) => ({ id: idx, value: str }));
   const stringColumns: Column<{ id: number; value: string }>[] = [
     {
       id: "index",
@@ -139,8 +145,8 @@ export function StaticAnalysisView({
     {
       id: "severity",
       header: "Severity",
-      accessor: (e) => e.severity,
-      render: (e) => <StrengthBadge strength={e.severity.toUpperCase() as "HIGH"} />,
+      accessor: (e) => e.severity || "MEDIUM",
+      render: (e) => <StrengthBadge strength={(e.severity || "MEDIUM").toUpperCase() as "HIGH"} />,
       width: "100px",
       align: "center",
     },
@@ -176,7 +182,7 @@ export function StaticAnalysisView({
         <div className="kpi-card">
           <span className="kpi-label">Overall Entropy</span>
           <strong className="kpi-value">
-            {staticAnalysis?.entropy?.toFixed(2) || "N/A"} / 8.00
+            {staticAnalysis?.entropy !== undefined && staticAnalysis.entropy !== null ? staticAnalysis.entropy.toFixed(2) : "N/A"} / 8.00
           </strong>
         </div>
         <div className="kpi-card">
@@ -188,7 +194,7 @@ export function StaticAnalysisView({
         <div className="kpi-card">
           <span className="kpi-label">Extracted Strings</span>
           <strong className="kpi-value">
-            {staticAnalysis?.strings_found.length.toLocaleString() || 0}
+            {extractedStringsList.length.toLocaleString()}
           </strong>
         </div>
       </div>
@@ -202,7 +208,7 @@ export function StaticAnalysisView({
           className={`subtab-btn ${activeSubtab === "sections" ? "active" : ""}`}
           onClick={() => setActiveSubtab("sections")}
         >
-          Header & Sections ({pe?.sections.length || 0})
+          Header & Sections ({pe?.sections?.length || 0})
         </button>
         <button
           type="button"
@@ -211,7 +217,7 @@ export function StaticAnalysisView({
           className={`subtab-btn ${activeSubtab === "imports" ? "active" : ""}`}
           onClick={() => setActiveSubtab("imports")}
         >
-          Imports & DLLs ({pe?.imported_dlls.length || Object.keys(staticAnalysis?.imports || {}).length})
+          Imports & DLLs ({pe?.imported_dlls?.length || Object.keys(staticAnalysis?.imports || {}).length})
         </button>
         <button
           type="button"
@@ -220,7 +226,7 @@ export function StaticAnalysisView({
           className={`subtab-btn ${activeSubtab === "strings" ? "active" : ""}`}
           onClick={() => setActiveSubtab("strings")}
         >
-          Extracted Strings ({staticAnalysis?.strings_found.length || 0})
+          Extracted Strings ({extractedStringsList.length})
         </button>
         <button
           type="button"
@@ -229,7 +235,7 @@ export function StaticAnalysisView({
           className={`subtab-btn ${activeSubtab === "indicators" ? "active" : ""}`}
           onClick={() => setActiveSubtab("indicators")}
         >
-          Static Indicators ({staticAnalysis?.evidence.length || 0})
+          Static Indicators ({staticAnalysis?.evidence?.length || 0})
         </button>
       </div>
 
@@ -267,22 +273,25 @@ export function StaticAnalysisView({
         <section className="subtab-content" aria-label="Imported DLLs and APIs">
           {staticAnalysis?.imports && Object.keys(staticAnalysis.imports).length > 0 ? (
             <div className="imports-accordion-stack">
-              {Object.entries(staticAnalysis.imports).map(([dll, apis]) => (
-                <div key={dll} className="import-dll-card">
-                  <div className="import-dll-header">
-                    <span className="dll-icon" aria-hidden="true">📦</span>
-                    <strong className="dll-name">{dll}</strong>
-                    <span className="dll-count">({apis.length} functions)</span>
+              {Object.entries(staticAnalysis.imports).map(([dll, apis]) => {
+                const safeApis = Array.isArray(apis) ? apis : [];
+                return (
+                  <div key={dll} className="import-dll-card">
+                    <div className="import-dll-header">
+                      <span className="dll-icon" aria-hidden="true">📦</span>
+                      <strong className="dll-name">{dll}</strong>
+                      <span className="dll-count">({safeApis.length} functions)</span>
+                    </div>
+                    <div className="dll-apis-grid">
+                      {safeApis.map((api, idx) => (
+                        <code key={idx} className="api-chip">
+                          {api}
+                        </code>
+                      ))}
+                    </div>
                   </div>
-                  <div className="dll-apis-grid">
-                    {apis.map((api, idx) => (
-                      <code key={idx} className="api-chip">
-                        {api}
-                      </code>
-                    ))}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <p className="subdued-text">No import table entries detected.</p>

@@ -89,16 +89,23 @@ export interface StaticEvidence {
   data: Record<string, unknown>;
 }
 
+export interface ExtractedStringItem {
+  value: string;
+  category?: string;
+  offset?: number;
+}
+
 export interface StaticAnalysisResult {
   sample_id: string;
-  file_format: FileFormat;
-  entropy: number;
-  is_packed: boolean;
-  strings_found: string[];
-  imports: Record<string, string[]>;
-  evidence: StaticEvidence[];
-  analyzed_at: string;
-  limitations: string[];
+  file_format?: FileFormat;
+  entropy?: number;
+  is_packed?: boolean;
+  strings_found?: string[];
+  strings?: Array<ExtractedStringItem | string>;
+  imports?: Record<string, string[]>;
+  evidence?: StaticEvidence[];
+  analyzed_at?: string;
+  limitations?: string[];
 }
 
 // ============================================================================
@@ -163,27 +170,55 @@ export interface DetectionResult {
   limitations: string[];
 }
 
+export interface DisassemblyInfo {
+  architecture: string;
+  entry_point?: number | null;
+  engine: string;
+  instruction_count: number;
+  unsupported_reason?: string | null;
+}
+
+export interface DisassembledInstruction {
+  address: number;
+  mnemonic: string;
+  operands: string;
+  size: number;
+  bytes_hex: string;
+  normalized: string;
+  is_call?: boolean;
+  is_jump?: boolean;
+  target?: number | null;
+}
+
 export interface CFGInstruction {
   address: number;
   mnemonic: string;
   operands: string;
-  bytes: string;
+  bytes?: string;
+  bytes_hex?: string;
+  size?: number;
 }
 
 export interface CFGBlock {
   block_id: string;
   start_address: number;
   end_address: number;
-  instructions: CFGInstruction[];
-  outgoing_edges: string[];
+  instruction_addresses?: number[];
+  instructions?: DisassembledInstruction[] | CFGInstruction[];
+  successors?: string[];
+  predecessors?: string[];
+  outgoing_edges?: string[];
+  terminal_instruction?: string | null;
   is_entry?: boolean;
   is_exit?: boolean;
 }
 
 export interface CFGEdge {
-  source_block_id: string;
-  target_block_id: string;
-  edge_type: "unconditional" | "conditional_true" | "conditional_false" | "indirect";
+  source?: string;
+  target?: string;
+  source_block_id?: string;
+  target_block_id?: string;
+  edge_type: string;
 }
 
 export interface ControlFlowGraph {
@@ -192,16 +227,21 @@ export interface ControlFlowGraph {
   edges: CFGEdge[];
 }
 
-export interface FunctionSummary {
-  function_id: string;
-  name: string;
-  address: number;
-  size_bytes: number;
-  block_count: number;
-  cyclomatic_complexity: number;
-  call_count: number;
-  api_calls: string[];
-  has_suspicious_patterns: boolean;
+export interface CallGraphNode {
+  node_id: string;
+  label: string;
+  node_type: string;
+}
+
+export interface CallGraphEdge {
+  source: string;
+  target: string;
+  call_type: string;
+}
+
+export interface CallGraph {
+  nodes: CallGraphNode[];
+  edges: CallGraphEdge[];
 }
 
 export interface ReverseEvidence {
@@ -210,16 +250,42 @@ export interface ReverseEvidence {
   type: string;
   description: string;
   confidence: number;
-  related_apis: string[];
-  related_strings: string[];
+  technical_details?: Record<string, unknown>;
+  related_apis?: string[];
+  related_strings?: string[];
+}
+
+export interface FunctionSummary {
+  function_id: string;
+  name?: string;
+  address: number;
+  size?: number;
+  size_bytes?: number;
+  basic_block_count?: number;
+  block_count?: number;
+  cyclomatic_complexity: number;
+  call_count?: number;
+  calls?: number[];
+  callers?: string[];
+  callees?: string[];
+  referenced_strings?: string[];
+  referenced_apis?: string[];
+  api_calls?: string[];
+  instructions?: DisassembledInstruction[];
+  evidence?: ReverseEvidence[];
+  has_suspicious_patterns?: boolean;
 }
 
 export interface ReverseAnalysisResult {
   sample_id: string;
-  status: "completed" | "failed";
-  functions: FunctionSummary[];
-  evidence: ReverseEvidence[];
+  status: "completed" | "failed" | "unsupported" | string;
+  schema_version?: string;
   analyzed_at: string;
+  disassembly?: DisassemblyInfo;
+  functions: FunctionSummary[];
+  cfgs?: Record<string, ControlFlowGraph>;
+  call_graph?: CallGraph;
+  evidence: ReverseEvidence[];
   limitations: string[];
 }
 
@@ -228,58 +294,107 @@ export interface ReverseAnalysisResult {
 // ============================================================================
 
 export interface ProcessEvent {
-  pid: number;
-  ppid: number;
-  process_name: string;
-  command_line: string;
   timestamp_ms: number;
+  pid?: number;
+  ppid?: number;
+  process_name: string;
+  command_line?: string | null;
+  is_sample?: boolean;
   image_path?: string;
 }
 
-export interface RegistryEvent {
-  operation: string;
-  key_path: string;
-  value_name?: string;
-  data?: string;
+export interface FileEvent {
   timestamp_ms: number;
+  pid?: number;
+  operation: "create" | "write" | "read" | "delete" | "rename" | string;
+  path: string;
+  size_bytes?: number | null;
+}
+
+export interface RegistryEvent {
+  timestamp_ms: number;
+  pid?: number;
+  operation: "create_key" | "set_value" | "delete_key" | "delete_value" | string;
+  key_path: string;
+  value_name?: string | null;
+  value_data?: string | null;
+  data?: string | null;
 }
 
 export interface NetworkEvent {
-  protocol: string;
-  source_ip?: string;
-  destination_ip?: string;
-  destination_port?: number;
-  domain?: string;
-  direction: "outbound" | "inbound";
   timestamp_ms: number;
+  pid?: number;
+  protocol: "tcp" | "udp" | "dns" | "http" | "https" | "other" | string;
+  direction: "outbound" | "inbound" | string;
+  destination_ip?: string | null;
+  destination_port?: number | null;
+  source_ip?: string | null;
+  domain?: string | null;
+  url?: string | null;
+  bytes_sent?: number;
+  bytes_received?: number;
 }
 
 export interface DroppedFileEvent {
+  artifact_id?: string | null;
   path: string;
-  size_bytes: number;
   sha256: string;
+  size_bytes: number;
+  file_type?: string | null;
+  is_executable?: boolean;
+  source_process?: string | null;
+  retained?: boolean;
+  retention_reason?: string | null;
+  timestamp_ms?: number;
+}
+
+export interface MutexEvent {
   timestamp_ms: number;
+  pid: number;
+  name: string;
+}
+
+export interface SandboxMetadata {
+  analysis_mode: "synthetic" | "sandbox" | string;
+  analyzer_version: string;
+  sandbox_image?: string | null;
+  analysis_duration_seconds: number;
+  network_policy?: "deny_all" | "simulated" | "controlled_egress" | string;
+  exit_reason?: "completed" | "timeout" | "crash" | "error" | string;
+  os_platform: string;
+  os_version: string;
+  artifacts_collected?: number;
+  synthetic_scenario?: string | null;
 }
 
 export interface BehaviorEvidence {
   evidence_id: string;
-  category: string;
-  description: string;
-  severity: "info" | "low" | "medium" | "high" | "critical";
+  type?: string;
+  category?: string;
+  source?: string;
+  severity?: "info" | "low" | "medium" | "high" | "critical" | string;
   confidence: number;
-  supporting_event_ids: string[];
+  description: string;
+  technical_details?: Record<string, unknown>;
+  related_process?: string | null;
+  related_events?: string[];
+  supporting_event_ids?: string[];
 }
 
 export interface BehaviorAnalysisResult {
   sample_id: string;
-  status: "completed" | "failed";
-  provenance: "synthetic" | "sandbox_execution";
+  status: "completed" | "failed" | "timeout" | "unsupported" | string;
+  schema_version?: string;
+  analyzed_at: string;
+  provenance?: "synthetic" | "sandbox_execution" | string;
+  sandbox_metadata?: SandboxMetadata;
   processes: ProcessEvent[];
+  file_events?: FileEvent[];
   registry_events: RegistryEvent[];
   network_events: NetworkEvent[];
   dropped_files: DroppedFileEvent[];
+  mutexes?: MutexEvent[];
   evidence: BehaviorEvidence[];
-  analyzed_at: string;
   limitations: string[];
 }
 
@@ -287,20 +402,49 @@ export interface BehaviorAnalysisResult {
 // Phase 5: Threat Intelligence & ATT&CK Mappings
 // ============================================================================
 
+export interface TechniqueEvidenceItem {
+  evidence_id: string;
+  category: "static" | "reverse" | "behavior" | "rules" | "ml" | "similarity" | string;
+  evidence_type: string;
+  statement: string;
+  value?: string | null;
+  observation_level?: "OBSERVED" | "INFERRED" | "POSSIBLE" | string;
+  strength?: "LOW" | "MEDIUM" | "HIGH" | string;
+  source?: string;
+}
+
 export interface CapabilityHypothesis {
   capability_id: string;
+  category?: string;
   name: string;
+  label?: "OBSERVED" | "INFERRED" | "POSSIBLE" | string;
   description: string;
+  explanation?: string;
   confidence: number;
+  evidence_ids?: string[];
   supporting_evidence_ids: string[];
+  source_engines?: string[];
 }
 
 export interface AttackTechniqueMapping {
   technique_id: string;
   technique_name: string;
   tactic: string;
+  subtechnique_id?: string | null;
+  subtechnique_name?: string | null;
+  description?: string;
+  how_it_works?: string;
+  why_igris_mapped?: string;
+  hypothesis?: string;
+  label?: "OBSERVED" | "INFERRED" | "POSSIBLE" | string;
+  classification?: "OBSERVED" | "INFERRED" | "POSSIBLE" | string;
   confidence: number;
-  supporting_evidence_ids: string[];
+  source_engine?: string;
+  explanation?: string;
+  mapping_version?: string;
+  evidence_ids?: string[];
+  supporting_evidence_ids?: string[];
+  supporting_evidence?: TechniqueEvidenceItem[];
 }
 
 export interface EvidenceRelationship {
@@ -312,11 +456,16 @@ export interface EvidenceRelationship {
 
 export interface ThreatAssessmentResult {
   sample_id: string;
+  status?: string;
+  engine_version?: string;
+  attack_mapping_version?: string;
   capabilities: CapabilityHypothesis[];
+  techniques?: AttackTechniqueMapping[];
   attack_techniques: AttackTechniqueMapping[];
-  relationships: EvidenceRelationship[];
+  relationships?: EvidenceRelationship[];
   narrative: string;
-  analyzed_at: string;
+  analyzed_at?: string;
+  limitations?: string[];
 }
 
 // ============================================================================

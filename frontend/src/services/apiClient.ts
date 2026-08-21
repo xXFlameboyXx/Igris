@@ -136,6 +136,16 @@ export const apiClient = {
     return handleResponse<SampleResponse>(res);
   },
 
+  async deleteSample(sampleId: string, signal?: AbortSignal): Promise<void> {
+    const res = await fetch(`/api/v1/samples/${encodeURIComponent(sampleId)}`, {
+      method: "DELETE",
+      signal,
+    });
+    if (!res.ok) {
+      return handleResponse<void>(res);
+    }
+  },
+
   async getFileInfo(sampleId: string, signal?: AbortSignal): Promise<FileInfoResponse> {
     const res = await fetch(`/api/v1/samples/${encodeURIComponent(sampleId)}/file-info`, {
       headers: { Accept: "application/json" },

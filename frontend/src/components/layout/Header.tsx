@@ -8,6 +8,7 @@ interface HeaderProps {
   samplesList?: Sample[];
   onSelectSampleId: (sampleId: string) => void;
   onUploadSample: (file: File) => Promise<void>;
+  onDeleteSample?: (sampleId: string) => Promise<void>;
   health: HealthResponse | null;
   bookmarksCount?: number;
   notesCount?: number;
@@ -22,6 +23,7 @@ export function Header({
   samplesList = [],
   onSelectSampleId,
   onUploadSample,
+  onDeleteSample,
   health,
   bookmarksCount = 0,
   notesCount = 0,
@@ -38,6 +40,10 @@ export function Header({
   const [uploading, setUploading] = useState(false);
   const [customSampleId, setCustomSampleId] = useState("");
   const [uploadError, setUploadError] = useState<string | null>(null);
+
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const handleUploadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -118,6 +124,20 @@ export function Header({
             >
               ⬆ Upload Specimen
             </button>
+
+            {currentSample && onDeleteSample && (
+              <button
+                type="button"
+                className="btn btn-sm btn-outline-danger remove-specimen-btn"
+                onClick={() => {
+                  setDeleteError(null);
+                  setIsDeleteOpen(true);
+                }}
+                title="Remove current specimen and its investigation history"
+              >
+                ✕ Remove Specimen
+              </button>
+            )}
 
             {onOpenBookmarks && (
               <button
@@ -269,6 +289,89 @@ export function Header({
           </div>
         </form>
       </Modal>
+
+      {/* Remove Specimen Confirmation Modal */}
+      {currentSample && (
+        <Modal
+          isOpen={isDeleteOpen}
+          onClose={() => {
+            if (!deleting) setIsDeleteOpen(false);
+          }}
+          title="Remove specimen?"
+          footer={
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setIsDeleteOpen(false)}
+                disabled={deleting}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-danger"
+                onClick={async () => {
+                  if (!onDeleteSample || !currentSample) return;
+                  setDeleting(true);
+                  setDeleteError(null);
+                  try {
+                    await onDeleteSample(currentSample.sample_id);
+                    setIsDeleteOpen(false);
+                  } catch (err) {
+                    setDeleteError(err instanceof Error ? err.message : "Failed to remove specimen.");
+                  } finally {
+                    setDeleting(false);
+                  }
+                }}
+                disabled={deleting}
+              >
+                {deleting ? "Removing specimen..." : "Remove specimen"}
+              </button>
+            </div>
+          }
+        >
+          <div className="delete-specimen-confirmation">
+            <p style={{ marginBottom: "14px", color: "var(--text-primary)", fontSize: "14px", lineHeight: "1.5" }}>
+              This will remove the uploaded specimen and its associated analysis history from IGRIS. This action cannot be undone.
+            </p>
+            <div
+              style={{
+                background: "var(--bg-tertiary)",
+                border: "1px solid var(--border-subtle)",
+                borderRadius: "6px",
+                padding: "12px 14px",
+                fontSize: "12px",
+                color: "var(--text-secondary)",
+                marginBottom: "12px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "6px",
+              }}
+            >
+              <div>
+                <strong>Filename:</strong>{" "}
+                <span style={{ color: "var(--text-primary)" }}>
+                  {currentSample.original_filename || currentSample.safe_filename || currentSample.sample_id}
+                </span>
+              </div>
+              <div>
+                <strong>Specimen ID:</strong> <code>{currentSample.sample_id}</code>
+              </div>
+              {currentSample.hashes?.sha256 && (
+                <div>
+                  <strong>SHA-256:</strong> <code>{currentSample.hashes.sha256}</code>
+                </div>
+              )}
+            </div>
+            {deleteError && (
+              <p className="form-error" role="alert">
+                {deleteError}
+              </p>
+            )}
+          </div>
+        </Modal>
+      )}
     </header>
   );
 }

@@ -22,6 +22,7 @@ from igris.schemas.threat_intelligence import (
     EvidenceMapping,
     IntelligenceStatus,
     Technique,
+    TechniqueEvidenceItem,
     ThreatAssessment,
 )
 
@@ -33,12 +34,19 @@ class MappingRule(BaseModel):
 
     mapping_id: str
     capability: CapabilityCategory
-    label: AssessmentLabel
+    label: AssessmentLabel = AssessmentLabel.POSSIBLE
     capability_confidence: float = Field(ge=0.0, le=1.0)
     technique_id: str
     technique_name: str
+    subtechnique_id: str | None = None
+    subtechnique_name: str | None = None
+    tactic: str | None = None
+    description: str = ""
+    how_it_works: str = ""
+    why_igris_mapped: str = ""
+    hypothesis: str = ""
     source_engine: str
-    explanation: str
+    explanation: str = ""
     required_evidence_types: list[str] = Field(default_factory=list)
     required_reverse_evidence_types: list[str] = Field(default_factory=list)
     required_behavior_evidence_types: list[str] = Field(default_factory=list)
@@ -93,13 +101,19 @@ def build_threat_assessment(
     behavior_evidence = behavior_analysis.evidence if behavior_analysis is not None else []
 
     for rule in dataset.rules:
-        matched_ids = _matched_evidence_ids(
-            rule, static_evidence, strings, imports, reverse_evidence, behavior_evidence
+        matched_ids, evidence_items = _matched_evidence_and_items(
+            rule,
+            static_evidence,
+            strings,
+            imports,
+            reverse_evidence,
+            behavior_evidence,
+            behavior_analysis,
         )
         if not matched_ids:
             continue
         capability = _capability_from_rule(rule, matched_ids)
-        technique = _technique_from_rule(rule, matched_ids, dataset.mapping_version)
+        technique = _technique_from_rule(rule, matched_ids, evidence_items, dataset.mapping_version)
         mapping = _evidence_mapping(
             rule, matched_ids, capability.capability_id, technique.technique_id
         )
@@ -125,6 +139,7 @@ def build_threat_assessment(
         attack_mapping_version=f"{dataset.mapping_version}; {dataset.attack_version}",
         capabilities=capabilities,
         techniques=techniques,
+        attack_techniques=techniques,
         evidence_mappings=mappings,
         behavior_hypotheses=hypotheses,
         evidence_graph=graph,
@@ -139,15 +154,19 @@ def build_threat_assessment(
     )
 
 
-def _matched_evidence_ids(
+def _matched_evidence_and_items(
     rule: MappingRule,
     static_evidence: list[StaticEvidence],
     strings: list[ExtractedString],
     imports: list[NormalizedImport],
     reverse_evidence: list[FunctionEvidence],
     behavior_evidence: list[BehaviorEvidence],
-) -> list[str]:
-    matched: list[str] = []
+    behavior_analysis: BehaviorAnalysisResult | None = None,
+) -> tuple[list[str], list[TechniqueEvidenceItem]]:
+    matched_ids: list[str] = []
+    evidence_items: list[TechniqueEvidenceItem] = []
+    seen_keys: set[str] = set()
+
     evidence_by_type = _ids_by_type(static_evidence)
     reverse_by_type = _reverse_ids_by_type(reverse_evidence)
     behavior_by_type = _behavior_ids_by_type(behavior_evidence)
@@ -155,43 +174,224 @@ def _matched_evidence_ids(
     string_categories = Counter(str(item.category) for item in strings)
     api_categories = Counter(str(item.category) for item in imports)
 
+    # 1. Required static evidence
     for evidence_type in rule.required_evidence_types:
         ids = evidence_by_type.get(evidence_type, [])
         if len(ids) < rule.minimum_evidence_count:
-            return []
-        matched.extend(ids)
+            return [], []
+        matched_ids.extend(ids)
+        for ev in static_evidence:
+            if str(ev.type) == evidence_type:
+                val = (
+                    ev.technical_details.get("value")
+                    or ev.technical_details.get("section")
+                    or ev.technical_details.get("api")
+                )
+                if not val and "entropy" in ev.technical_details:
+                    val = f"Entropy {ev.technical_details['entropy']}"
+                key = f"static:{ev.type}:{val or ev.description}"
+                if key not in seen_keys:
+                    seen_keys.add(key)
+                    evidence_items.append(
+                        TechniqueEvidenceItem(
+                            evidence_id=ev.evidence_id,
+                            category="static",
+                            evidence_type=str(ev.type),
+                            statement=ev.description,
+                            value=str(val) if val else None,
+                            observation_level=AssessmentLabel.OBSERVED,
+                            strength=str(ev.severity).upper(),
+                            source=ev.source,
+                        )
+                    )
+
+    # 2. Required reverse evidence
     for evidence_type in rule.required_reverse_evidence_types:
         ids = reverse_by_type.get(evidence_type, [])
         if not ids:
-            return []
-        matched.extend(ids)
+            return [], []
+        matched_ids.extend(ids)
+        for rev in reverse_evidence:
+            if str(rev.type) == evidence_type:
+                val = (", ".join(rev.related_apis) if rev.related_apis else None) or rev.function_id
+                key = f"reverse:{rev.type}:{val}"
+                if key not in seen_keys:
+                    seen_keys.add(key)
+                    evidence_items.append(
+                        TechniqueEvidenceItem(
+                            evidence_id=rev.evidence_id,
+                            category="reverse",
+                            evidence_type=str(rev.type),
+                            statement=rev.description,
+                            value=str(val) if val else None,
+                            observation_level=AssessmentLabel.INFERRED,
+                            strength="HIGH" if rev.confidence >= 0.7 else "MEDIUM",
+                            source="reverse_analysis",
+                        )
+                    )
+
+    # 3. Required behavior evidence
     for evidence_type in rule.required_behavior_evidence_types:
         ids = behavior_by_type.get(evidence_type, [])
         if not ids:
-            return []
-        matched.extend(ids)
+            return [], []
+        matched_ids.extend(ids)
+        for beh in behavior_evidence:
+            if str(beh.type) == evidence_type:
+                val = (
+                    beh.technical_details.get("key")
+                    or beh.technical_details.get("destination")
+                    or beh.technical_details.get("path")
+                    or beh.technical_details.get("process")
+                    or beh.related_process
+                )
+                key = f"behavior:{beh.type}:{val or beh.description}"
+                if key not in seen_keys:
+                    seen_keys.add(key)
+                    obs_lvl = (
+                        AssessmentLabel.OBSERVED
+                        if (
+                            behavior_analysis
+                            and behavior_analysis.sandbox_metadata
+                            and behavior_analysis.sandbox_metadata.analysis_mode == "sandbox"
+                        )
+                        else AssessmentLabel.POSSIBLE
+                    )
+                    evidence_items.append(
+                        TechniqueEvidenceItem(
+                            evidence_id=beh.evidence_id,
+                            category="behavior",
+                            evidence_type=str(beh.type),
+                            statement=beh.description,
+                            value=str(val) if val else None,
+                            observation_level=obs_lvl,
+                            strength=str(beh.severity).upper(),
+                            source="behavior_analysis",
+                        )
+                    )
+
+    # 4. Required string categories
     for category in rule.required_string_categories:
         if string_categories.get(category, 0) < 1:
-            return []
-        matched.extend(_string_indicator_ids(strings, category))
+            return [], []
+        matched_strings = [
+            s
+            for s in strings
+            if str(s.category) == category
+            and (
+                not rule.keyword_any or any(k.lower() in s.value.lower() for k in rule.keyword_any)
+            )
+        ]
+        if rule.keyword_any and not matched_strings:
+            return [], []
+        for s in matched_strings:
+            s_id = f"str-{_digest(str(s.offset) + s.value)}"
+            matched_ids.append(s_id)
+            key = f"string:{category}:{s.value}"
+            if key not in seen_keys:
+                seen_keys.add(key)
+                evidence_items.append(
+                    TechniqueEvidenceItem(
+                        evidence_id=s_id,
+                        category="static",
+                        evidence_type="extracted_string",
+                        statement=f"Extracted {s.category} string: {s.value}",
+                        value=s.value,
+                        observation_level=AssessmentLabel.OBSERVED,
+                        strength="MEDIUM",
+                        source="static_analysis",
+                    )
+                )
+
+    # 5. Required string categories any
     if rule.required_string_categories_any:
-        any_ids: list[str] = []
-        for category in rule.required_string_categories_any:
-            any_ids.extend(_string_indicator_ids(strings, category))
-        if not any_ids:
-            return []
-        matched.extend(any_ids)
+        matched_any = [
+            s
+            for s in strings
+            if str(s.category) in rule.required_string_categories_any
+            and (
+                not rule.keyword_any or any(k.lower() in s.value.lower() for k in rule.keyword_any)
+            )
+        ]
+        if not matched_any:
+            return [], []
+        for s in matched_any:
+            s_id = f"str-{_digest(str(s.offset) + s.value)}"
+            matched_ids.append(s_id)
+            key = f"string:{s.category}:{s.value}"
+            if key not in seen_keys:
+                seen_keys.add(key)
+                evidence_items.append(
+                    TechniqueEvidenceItem(
+                        evidence_id=s_id,
+                        category="static",
+                        evidence_type="extracted_string",
+                        statement=f"Extracted {s.category} string: {s.value}",
+                        value=s.value,
+                        observation_level=AssessmentLabel.OBSERVED,
+                        strength="MEDIUM",
+                        source="static_analysis",
+                    )
+                )
+
+    # 6. Required API categories
     for category in rule.required_api_categories:
         if api_categories.get(category, 0) < 1:
-            return []
-        matched.extend(_api_indicator_ids(imports, category))
-    if rule.keyword_any and not any(
-        keyword.lower() in value for keyword in rule.keyword_any for value in string_values
+            return [], []
+        matched_apis = [imp for imp in imports if str(imp.category) == category]
+        for imp in matched_apis:
+            api_id = f"api-{_digest((imp.module or '') + imp.name)}"
+            matched_ids.append(api_id)
+            key = f"api:{category}:{imp.name}"
+            if key not in seen_keys:
+                seen_keys.add(key)
+                mod_str = f" ({imp.module})" if imp.module else ""
+                evidence_items.append(
+                    TechniqueEvidenceItem(
+                        evidence_id=api_id,
+                        category="static",
+                        evidence_type="imported_api",
+                        statement=f"Imported API: {imp.name}{mod_str}",
+                        value=imp.name,
+                        observation_level=AssessmentLabel.OBSERVED,
+                        strength="MEDIUM",
+                        source="static_analysis",
+                    )
+                )
+
+    # 7. Keyword check if not checked by string categories
+    if (
+        rule.keyword_any
+        and not rule.required_string_categories
+        and not rule.required_string_categories_any
     ):
-        return []
-    if not matched:
-        return []
-    return sorted(set(matched))
+        if not any(
+            keyword.lower() in value for keyword in rule.keyword_any for value in string_values
+        ):
+            return [], []
+        for s in strings:
+            if any(k.lower() in s.value.lower() for k in rule.keyword_any):
+                s_id = f"str-{_digest(str(s.offset) + s.value)}"
+                matched_ids.append(s_id)
+                key = f"string:keyword:{s.value}"
+                if key not in seen_keys:
+                    seen_keys.add(key)
+                    evidence_items.append(
+                        TechniqueEvidenceItem(
+                            evidence_id=s_id,
+                            category="static",
+                            evidence_type="extracted_string",
+                            statement=f"Extracted {s.category} string: {s.value}",
+                            value=s.value,
+                            observation_level=AssessmentLabel.OBSERVED,
+                            strength="MEDIUM",
+                            source="static_analysis",
+                        )
+                    )
+
+    if not matched_ids:
+        return [], []
+    return sorted(set(matched_ids)), evidence_items
 
 
 def _capability_from_rule(rule: MappingRule, evidence_ids: list[str]) -> Capability:
@@ -199,26 +399,64 @@ def _capability_from_rule(rule: MappingRule, evidence_ids: list[str]) -> Capabil
     return Capability(
         capability_id=capability_id,
         category=rule.capability,
+        name=str(rule.capability),
         label=rule.label,
         confidence=rule.capability_confidence,
         evidence_ids=evidence_ids,
+        supporting_evidence_ids=evidence_ids,
         source_engines=sorted({rule.source_engine}),
         explanation=rule.explanation,
+        description=rule.explanation,
     )
 
 
 def _technique_from_rule(
-    rule: MappingRule, evidence_ids: list[str], mapping_version: str
+    rule: MappingRule,
+    evidence_ids: list[str],
+    evidence_items: list[TechniqueEvidenceItem],
+    mapping_version: str,
 ) -> Technique:
+    why_mapped = (
+        rule.why_igris_mapped
+        or f"IGRIS identified technical evidence associated with {rule.technique_name}."
+    )
+
+    base_hypothesis = (
+        rule.hypothesis or f"the specimen may exhibit {rule.technique_name} capabilities"
+    )
+    clean_hypothesis = base_hypothesis.rstrip(".")
+    if rule.label == AssessmentLabel.OBSERVED:
+        hypothesis_statement = (
+            f"The analysis directly observed evidence indicating that {clean_hypothesis}."
+        )
+    elif rule.label == AssessmentLabel.INFERRED:
+        hypothesis_statement = (
+            f"The available evidence supports an inferred hypothesis that {clean_hypothesis}."
+        )
+    else:
+        hypothesis_statement = (
+            f"Technical indicators suggest a possible relationship where {clean_hypothesis}, "
+            "though available evidence does not establish confirmed execution."
+        )
+
     return Technique(
         technique_id=rule.technique_id,
         technique_name=rule.technique_name,
         tactic=rule.capability,
-        evidence_ids=evidence_ids,
+        subtechnique_id=rule.subtechnique_id,
+        subtechnique_name=rule.subtechnique_name,
+        description=rule.description or rule.explanation,
+        how_it_works=rule.how_it_works or rule.explanation,
+        why_igris_mapped=why_mapped,
+        hypothesis=hypothesis_statement,
+        label=rule.label,
         confidence=rule.capability_confidence,
         source_engine=rule.source_engine,
-        explanation=rule.explanation,
+        explanation=why_mapped,
         mapping_version=mapping_version,
+        evidence_ids=evidence_ids,
+        supporting_evidence_ids=evidence_ids,
+        supporting_evidence=evidence_items,
     )
 
 

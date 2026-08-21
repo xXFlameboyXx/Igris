@@ -78,8 +78,8 @@ export function SimilarityView({
     {
       id: "confidence",
       header: "Confidence",
-      accessor: (m) => m.confidence,
-      render: (m) => <ConfidenceBadge label="Match" level={m.confidence.toUpperCase() as "HIGH"} />,
+      accessor: (m) => m.confidence || "LOW",
+      render: (m) => <ConfidenceBadge label="Match" level={(m.confidence || "LOW").toUpperCase() as "HIGH"} />,
       width: "140px",
       align: "center",
     },
@@ -187,7 +187,7 @@ export function SimilarityView({
           <div className="category-scores-section">
             <h4 className="subheading">Feature Category Breakdown</h4>
             <div className="category-scores-grid">
-              {selectedMatch.category_scores.map((cat) => {
+              {(selectedMatch.category_scores || []).map((cat) => {
                 const scorePct = Math.round(cat.score * 100);
                 return (
                   <div key={cat.category} className="cat-score-card">
@@ -198,7 +198,7 @@ export function SimilarityView({
                     <div className="cat-bar-track">
                       <div className="cat-bar-fill" style={{ width: `${scorePct}%` }} />
                     </div>
-                    {cat.contributing_elements.length > 0 && (
+                    {(cat.contributing_elements || []).length > 0 && (
                       <small className="cat-elements">
                         {cat.contributing_elements.join(" • ")}
                       </small>
@@ -212,18 +212,18 @@ export function SimilarityView({
           {/* Shared Indicators vs Discriminating Differences */}
           <div className="match-diff-grid">
             <div className="diff-col shared-col">
-              <h4>Shared Technical Indicators ({selectedMatch.shared_indicators.length})</h4>
+              <h4>Shared Technical Indicators ({(selectedMatch.shared_indicators || []).length})</h4>
               <ul>
-                {selectedMatch.shared_indicators.map((ind, idx) => (
+                {(selectedMatch.shared_indicators || []).map((ind, idx) => (
                   <li key={idx}>✓ {ind}</li>
                 ))}
               </ul>
             </div>
 
             <div className="diff-col diffs-col">
-              <h4>Discriminating Differences ({selectedMatch.discriminating_differences.length})</h4>
+              <h4>Discriminating Differences ({(selectedMatch.discriminating_differences || []).length})</h4>
               <ul>
-                {selectedMatch.discriminating_differences.map((diff, idx) => (
+                {(selectedMatch.discriminating_differences || []).map((diff, idx) => (
                   <li key={idx}>≠ {diff}</li>
                 ))}
               </ul>

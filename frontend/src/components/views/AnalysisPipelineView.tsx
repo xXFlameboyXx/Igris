@@ -217,28 +217,6 @@ export const AnalysisPipelineView: React.FC<AnalysisPipelineViewProps> = ({
 
   if (!sample) {
     return (
-      <div className="card" style={{ padding: "3rem", textAlign: "center" }}>
-        <p style={{ color: "var(--color-text-muted)" }}>
-          Please select or upload a sample to view and orchestrate the analysis pipeline.
-        </p>
-      </div>
-    );
-  }
-
-  if (isLoading && !activeJob) {
-    return <LoadingState message="Fetching orchestration pipeline jobs..." />;
-  }
-
-  const completedStagesCount = activeJob
-    ? activeJob.stages.filter((s) => s.status === "COMPLETED").length
-    : 0;
-  const failedStagesCount = activeJob
-    ? activeJob.stages.filter((s) => s.status === "FAILED").length
-    : 0;
-  const totalStagesCount = activeJob ? activeJob.stages.length : 11;
-
-  if (!sample) {
-    return (
       <EmptyState
         icon="⚡"
         title="No Specimen Selected"
@@ -246,6 +224,15 @@ export const AnalysisPipelineView: React.FC<AnalysisPipelineViewProps> = ({
       />
     );
   }
+
+  if (isLoading && !activeJob) {
+    return <LoadingState message="Fetching orchestration pipeline jobs..." />;
+  }
+
+  const stagesList = activeJob?.stages || [];
+  const completedStagesCount = stagesList.filter((s) => s.status === "COMPLETED").length;
+  const failedStagesCount = stagesList.filter((s) => s.status === "FAILED").length;
+  const totalStagesCount = stagesList.length > 0 ? stagesList.length : 11;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>

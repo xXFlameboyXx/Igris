@@ -72,12 +72,13 @@ export function DataTable<T>({
 
   // Filter
   const filteredData = useMemo(() => {
-    if (!searchQuery.trim()) return data;
+    const safeData = data || [];
+    if (!searchQuery.trim()) return safeData;
     const q = searchQuery.toLowerCase().trim();
     if (searchFilter) {
-      return data.filter((row) => searchFilter(row, q));
+      return safeData.filter((row) => searchFilter(row, q));
     }
-    return data.filter((row) =>
+    return safeData.filter((row) =>
       columns.some((col) => {
         if (col.accessor) {
           const val = col.accessor(row);

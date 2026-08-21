@@ -83,17 +83,17 @@ export function VerdictExplainabilityView({
               <h4 id="observed-heading" className="ep-title">Observed Facts</h4>
               <small className="ep-sub">Direct binary structure & telemetry</small>
             </div>
-            <span className="count-pill">{explanation.observed_findings.length}</span>
+            <span className="count-pill">{(explanation?.observed_findings || []).length}</span>
           </div>
 
           <ul className="ep-list">
-            {explanation.observed_findings.map((item, idx) => (
+            {(explanation?.observed_findings || []).map((item, idx) => (
               <li key={idx} className="ep-list-item">
                 <span className="bullet-dot" aria-hidden="true">•</span>
                 <span>{item}</span>
               </li>
             ))}
-            {explanation.observed_findings.length === 0 && (
+            {(!explanation?.observed_findings || explanation.observed_findings.length === 0) && (
               <li className="subdued-text">Zero raw observations recorded.</li>
             )}
           </ul>
@@ -107,17 +107,17 @@ export function VerdictExplainabilityView({
               <h4 id="inferred-heading" className="ep-title">Inferred Conclusions</h4>
               <small className="ep-sub">Rule matches & analytical models</small>
             </div>
-            <span className="count-pill">{explanation.inferred_findings.length}</span>
+            <span className="count-pill">{(explanation?.inferred_findings || []).length}</span>
           </div>
 
           <ul className="ep-list">
-            {explanation.inferred_findings.map((item, idx) => (
+            {(explanation?.inferred_findings || []).map((item, idx) => (
               <li key={idx} className="ep-list-item">
                 <span className="bullet-dot" aria-hidden="true">•</span>
                 <span>{item}</span>
               </li>
             ))}
-            {explanation.inferred_findings.length === 0 && (
+            {(!explanation?.inferred_findings || explanation.inferred_findings.length === 0) && (
               <li className="subdued-text">Zero inferred deductions recorded.</li>
             )}
           </ul>
@@ -131,17 +131,17 @@ export function VerdictExplainabilityView({
               <h4 id="possible-heading" className="ep-title">Possible Hypotheses</h4>
               <small className="ep-sub">Similarity clusters (unproven)</small>
             </div>
-            <span className="count-pill">{explanation.possible_hypotheses.length}</span>
+            <span className="count-pill">{(explanation?.possible_hypotheses || []).length}</span>
           </div>
 
           <ul className="ep-list">
-            {explanation.possible_hypotheses.map((item, idx) => (
+            {(explanation?.possible_hypotheses || []).map((item, idx) => (
               <li key={idx} className="ep-list-item">
                 <span className="bullet-dot" aria-hidden="true">•</span>
                 <span>{item}</span>
               </li>
             ))}
-            {explanation.possible_hypotheses.length === 0 && (
+            {(!explanation?.possible_hypotheses || explanation.possible_hypotheses.length === 0) && (
               <li className="subdued-text">No hypothetical clusters matched.</li>
             )}
           </ul>
@@ -153,10 +153,10 @@ export function VerdictExplainabilityView({
         <section className="argument-card argument-supporting" aria-labelledby="supporting-heading">
           <div className="arg-header">
             <span className="arg-icon" aria-hidden="true">🔺</span>
-            <h4 id="supporting-heading">Supporting Evidence Arguments ({explanation.supporting_arguments.length})</h4>
+            <h4 id="supporting-heading">Supporting Evidence Arguments ({(explanation?.supporting_arguments || []).length})</h4>
           </div>
           <ul className="arg-list">
-            {explanation.supporting_arguments.map((arg, idx) => (
+            {(explanation?.supporting_arguments || []).map((arg, idx) => (
               <li key={idx} className="arg-item">
                 <span className="arg-bullet">✓</span>
                 <span>{arg}</span>
@@ -168,10 +168,10 @@ export function VerdictExplainabilityView({
         <section className="argument-card argument-contradicting" aria-labelledby="contradicting-heading">
           <div className="arg-header">
             <span className="arg-icon" aria-hidden="true">🔻</span>
-            <h4 id="contradicting-heading">Contradicting & Mitigating Arguments ({explanation.contradicting_arguments.length})</h4>
+            <h4 id="contradicting-heading">Contradicting & Mitigating Arguments ({(explanation?.contradicting_arguments || []).length})</h4>
           </div>
           <ul className="arg-list">
-            {explanation.contradicting_arguments.map((arg, idx) => (
+            {(explanation?.contradicting_arguments || []).map((arg, idx) => (
               <li key={idx} className="arg-item">
                 <span className="arg-bullet">ℹ</span>
                 <span>{arg}</span>
@@ -186,10 +186,10 @@ export function VerdictExplainabilityView({
         <div className="score-details-header">
           <div>
             <h3 id="score-breakdown-heading" className="card-title">
-              Deterministic Evidence Risk Score Breakdown: <strong>{risk_score.score} / 100</strong>
+              Deterministic Evidence Risk Score Breakdown: <strong>{risk_score?.score ?? 0} / 100</strong>
             </h3>
             <p className="formula-desc">
-              Calculated via: <code>{risk_score.formula}</code>
+              Calculated via: <code>{risk_score?.formula || "N/A"}</code>
             </p>
           </div>
         </div>
@@ -198,11 +198,11 @@ export function VerdictExplainabilityView({
           {/* Contributing Factors */}
           <div className="factors-col">
             <h4 className="factors-heading positive">
-              Contributing Factors (+{risk_score.contributing_factors.reduce((acc, f) => acc + f.points, 0)} pts)
+              Contributing Factors (+{(risk_score?.contributing_factors || []).reduce((acc, f) => acc + (f.points || 0), 0)} pts)
             </h4>
-            {risk_score.contributing_factors.length > 0 ? (
+            {(risk_score?.contributing_factors || []).length > 0 ? (
               <ul className="factors-list">
-                {risk_score.contributing_factors.map((factor, idx) => (
+                {(risk_score?.contributing_factors || []).map((factor, idx) => (
                   <li key={idx} className="factor-row factor-pos">
                     <span className="factor-points">+{factor.points}</span>
                     <div className="factor-body">
@@ -223,11 +223,11 @@ export function VerdictExplainabilityView({
           {/* Mitigating Factors */}
           <div className="factors-col">
             <h4 className="factors-heading mitigating">
-              Mitigating Factors (-{risk_score.mitigating_factors.reduce((acc, f) => acc + f.points, 0)} pts)
+              Mitigating Factors (-{(risk_score?.mitigating_factors || []).reduce((acc, f) => acc + (f.points || 0), 0)} pts)
             </h4>
-            {risk_score.mitigating_factors.length > 0 ? (
+            {(risk_score?.mitigating_factors || []).length > 0 ? (
               <ul className="factors-list">
-                {risk_score.mitigating_factors.map((factor, idx) => (
+                {(risk_score?.mitigating_factors || []).map((factor, idx) => (
                   <li key={idx} className="factor-row factor-mit">
                     <span className="factor-points mitigating-points">-{factor.points}</span>
                     <div className="factor-body">
@@ -262,13 +262,13 @@ export function VerdictExplainabilityView({
         </p>
 
         <ul className="uncertainties-list">
-          {explanation.uncertainty_and_unknowns.map((unc, idx) => (
+          {(explanation?.uncertainty_and_unknowns || []).map((unc, idx) => (
             <li key={idx} className="uncertainty-item">
               <span className="unc-icon" aria-hidden="true">○</span>
               <span>{unc}</span>
             </li>
           ))}
-          {explanation.uncertainty_and_unknowns.length === 0 && (
+          {(!explanation?.uncertainty_and_unknowns || explanation.uncertainty_and_unknowns.length === 0) && (
             <li className="subdued-text">All telemetry and analysis subsystems fully executed.</li>
           )}
         </ul>
@@ -282,7 +282,7 @@ export function VerdictExplainabilityView({
           </h3>
         </div>
         <ul className="limitations-list">
-          {limitations.map((lim, idx) => (
+          {(limitations || []).map((lim, idx) => (
             <li key={idx} className="limitation-item">
               <span className="lim-icon" aria-hidden="true">🔒</span>
               <span>{lim}</span>

@@ -31,44 +31,47 @@ export function BehavioralView({
     const nodes: GraphNode[] = [];
 
     // Process nodes
-    behavior.processes.forEach((p) => {
+    (behavior.processes || []).forEach((p) => {
       nodes.push({
         id: `proc-${p.pid}`,
         label: `${p.process_name} (PID: ${p.pid})`,
-        sublabel: p.command_line,
+        sublabel: p.command_line || "",
         category: "PROCESS",
         isEntry: p.ppid === 1024 || p.pid === behavior.processes[0]?.pid,
-        hasSuspiciousPattern: p.process_name.includes("powershell") || p.process_name.includes("cmd"),
+        hasSuspiciousPattern: (p.process_name || "").includes("powershell") || (p.process_name || "").includes("cmd"),
       });
     });
 
     // Registry nodes
-    behavior.registry_events.forEach((r, idx) => {
+    (behavior.registry_events || []).forEach((r, idx) => {
       nodes.push({
         id: `reg-${idx}`,
         label: `Registry: ${r.value_name || "Key"}`,
         sublabel: r.key_path,
         category: "REGISTRY",
-        hasSuspiciousPattern: r.key_path.includes("Run"),
+        hasSuspiciousPattern: (r.key_path || "").includes("Run"),
       });
     });
 
     // Network nodes
-    behavior.network_events.forEach((n, idx) => {
+    (behavior.network_events || []).forEach((n, idx) => {
+      const proto = (n.protocol || "tcp").toUpperCase();
+      const dir = (n.direction || "outbound").toLowerCase();
       nodes.push({
         id: `net-${idx}`,
-        label: n.domain || `${n.destination_ip}:${n.destination_port}`,
-        sublabel: `${n.protocol.toUpperCase()} ${n.direction}`,
+        label: n.domain || (n.destination_ip ? `${n.destination_ip}:${n.destination_port || ""}` : "Network Endpoint"),
+        sublabel: `${proto} ${dir}`,
         category: "NETWORK",
         hasSuspiciousPattern: true,
       });
     });
 
     // Dropped file nodes
-    behavior.dropped_files.forEach((f, idx) => {
+    (behavior.dropped_files || []).forEach((f, idx) => {
+      const filename = f.path ? f.path.split(/[\\/]/).pop() || f.path : "file";
       nodes.push({
         id: `file-${idx}`,
-        label: `Dropped: ${f.path.split("\\").pop() || f.path}`,
+        label: `Dropped: ${filename}`,
         sublabel: f.path,
         category: "FILE",
       });
@@ -80,10 +83,11 @@ export function BehavioralView({
   const behaviorEdges: GraphEdge[] = useMemo(() => {
     if (!behavior) return [];
     const edges: GraphEdge[] = [];
+    const procs = behavior.processes || [];
 
     // Process tree edges
-    behavior.processes.forEach((p) => {
-      if (behavior.processes.some((parent) => parent.pid === p.ppid)) {
+    procs.forEach((p) => {
+      if (procs.some((parent) => parent.pid === p.ppid)) {
         edges.push({
           id: `proc-edge-${p.ppid}-${p.pid}`,
           source: `proc-${p.ppid}`,
@@ -95,8 +99,8 @@ export function BehavioralView({
     });
 
     // Connect first process to registry, network, files
-    const rootProcId = `proc-${behavior.processes[0]?.pid || 2048}`;
-    behavior.registry_events.forEach((_, idx) => {
+    const rootProcId = `proc-${procs[0]?.pid || 2048}`;
+    (behavior.registry_events || []).forEach((_, idx) => {
       edges.push({
         id: `edge-reg-${idx}`,
         source: rootProcId,
@@ -106,7 +110,7 @@ export function BehavioralView({
       });
     });
 
-    behavior.network_events.forEach((_, idx) => {
+    (behavior.network_events || []).forEach((_, idx) => {
       edges.push({
         id: `edge-net-${idx}`,
         source: rootProcId,
@@ -116,7 +120,7 @@ export function BehavioralView({
       });
     });
 
-    behavior.dropped_files.forEach((_, idx) => {
+    (behavior.dropped_files || []).forEach((_, idx) => {
       edges.push({
         id: `edge-file-${idx}`,
         source: rootProcId,
@@ -143,46 +147,51 @@ export function BehavioralView({
 
     const items: TimelineItem[] = [];
 
-    behavior.processes.forEach((p, idx) => {
+    (behavior.processes || []).forEach((p, idx) => {
       items.push({
         id: `tl-p-${idx}`,
-        timestamp_ms: p.timestamp_ms,
+        timestamp_ms: p.timestamp_ms || 0,
         type: "PROCESS",
         summary: `Spawned process: ${p.process_name} (PID: ${p.pid})`,
-        details: p.command_line,
-        isSuspicious: p.process_name.includes("powershell"),
+        details: p.command_line || "—",
+        isSuspicious: (p.process_name || "").includes("powershell"),
       });
     });
 
-    behavior.registry_events.forEach((r, idx) => {
+    (behavior.registry_events || []).forEach((r, idx) => {
+      const val = r.value_data || r.data || "";
       items.push({
         id: `tl-r-${idx}`,
-        timestamp_ms: r.timestamp_ms,
+        timestamp_ms: r.timestamp_ms || 0,
         type: "REGISTRY",
         summary: `Registry ${r.operation}: ${r.value_name || ""}`,
-        details: `${r.key_path} -> ${r.data || ""}`,
-        isSuspicious: r.key_path.includes("Run"),
+        details: `${r.key_path}${val ? ` -> ${val}` : ""}`,
+        isSuspicious: (r.key_path || "").includes("Run"),
       });
     });
 
-    behavior.network_events.forEach((n, idx) => {
+    (behavior.network_events || []).forEach((n, idx) => {
+      const proto = (n.protocol || "tcp").toUpperCase();
+      const dir = (n.direction || "outbound").toUpperCase();
+      const dest = n.destination_ip || n.domain || "remote";
+      const port = n.destination_port ? `:${n.destination_port}` : "";
       items.push({
         id: `tl-n-${idx}`,
-        timestamp_ms: n.timestamp_ms,
+        timestamp_ms: n.timestamp_ms || 0,
         type: "NETWORK",
-        summary: `Network ${n.direction.toUpperCase()} socket: ${n.protocol.toUpperCase()} ${n.destination_ip || n.domain}:${n.destination_port || ""}`,
-        details: `Source: ${n.source_ip || "local"} -> Dest: ${n.destination_ip || n.domain}`,
+        summary: `Network ${dir} socket: ${proto} ${dest}${port}`,
+        details: `Source: ${n.source_ip || "local"} -> Dest: ${dest}${port}`,
         isSuspicious: true,
       });
     });
 
-    behavior.dropped_files.forEach((f, idx) => {
+    (behavior.dropped_files || []).forEach((f, idx) => {
       items.push({
         id: `tl-f-${idx}`,
-        timestamp_ms: f.timestamp_ms,
+        timestamp_ms: f.timestamp_ms || 0,
         type: "FILE",
         summary: `Dropped artifact: ${f.path}`,
-        details: `SHA-256: ${f.sha256} (${f.size_bytes} B)`,
+        details: `SHA-256: ${f.sha256} (${f.size_bytes || 0} B)`,
         isSuspicious: true,
       });
     });
@@ -205,6 +214,8 @@ export function BehavioralView({
     );
   }
 
+  const provenance = behavior.sandbox_metadata?.analysis_mode || behavior.provenance || "sandbox";
+
   // Tables Columns
   const processColumns: Column<ProcessEvent>[] = [
     {
@@ -221,7 +232,7 @@ export function BehavioralView({
       render: (p) => (
         <div className="proc-name-cell">
           <strong>{p.process_name}</strong>
-          {p.process_name.includes("powershell") && (
+          {(p.process_name || "").includes("powershell") && (
             <span className="badge badge-critical badge-sm">⚠️ Suspicious</span>
           )}
         </div>
@@ -231,13 +242,13 @@ export function BehavioralView({
     {
       id: "command",
       header: "Command Line",
-      accessor: (p) => p.command_line,
-      render: (p) => <code className="cmd-code">{p.command_line}</code>,
+      accessor: (p) => p.command_line || "—",
+      render: (p) => <code className="cmd-code">{p.command_line || "—"}</code>,
     },
     {
       id: "time",
       header: "Offset",
-      accessor: (p) => `+${p.timestamp_ms}ms`,
+      accessor: (p) => `+${p.timestamp_ms || 0}ms`,
       width: "100px",
       align: "right",
     },
@@ -258,25 +269,28 @@ export function BehavioralView({
       render: (r) => (
         <div className="reg-key-cell">
           <code>{r.key_path}</code>
-          {r.key_path.includes("Run") && <span className="badge badge-high badge-sm">⚠️ Autostart Run Key</span>}
+          {(r.key_path || "").includes("Run") && <span className="badge badge-high badge-sm">⚠️ Autostart Run Key</span>}
         </div>
       ),
     },
     {
       id: "value",
       header: "Value / Data",
-      accessor: (r) => `${r.value_name || ""} = ${r.data || ""}`,
-      render: (r) => (
-        <div>
-          {r.value_name && <strong>{r.value_name}: </strong>}
-          <code>{r.data || "—"}</code>
-        </div>
-      ),
+      accessor: (r) => `${r.value_name || ""} = ${r.value_data || r.data || ""}`,
+      render: (r) => {
+        const val = r.value_data || r.data;
+        return (
+          <div>
+            {r.value_name && <strong>{r.value_name}: </strong>}
+            <code>{val || "—"}</code>
+          </div>
+        );
+      },
     },
     {
       id: "time",
       header: "Offset",
-      accessor: (r) => `+${r.timestamp_ms}ms`,
+      accessor: (r) => `+${r.timestamp_ms || 0}ms`,
       width: "100px",
       align: "right",
     },
@@ -286,17 +300,17 @@ export function BehavioralView({
     {
       id: "proto",
       header: "Protocol",
-      accessor: (n) => n.protocol.toUpperCase(),
-      render: (n) => <span className="badge badge-info badge-sm">{n.protocol.toUpperCase()}</span>,
+      accessor: (n) => (n.protocol || "tcp").toUpperCase(),
+      render: (n) => <span className="badge badge-info badge-sm">{(n.protocol || "tcp").toUpperCase()}</span>,
       width: "100px",
     },
     {
       id: "dest",
       header: "Destination",
-      accessor: (n) => n.domain || `${n.destination_ip}:${n.destination_port}`,
+      accessor: (n) => n.domain || (n.destination_ip ? `${n.destination_ip}:${n.destination_port || ""}` : "—"),
       render: (n) => (
         <div>
-          <strong>{n.domain || n.destination_ip}</strong>
+          <strong>{n.domain || n.destination_ip || "—"}</strong>
           {n.destination_port && <span>:{n.destination_port}</span>}
         </div>
       ),
@@ -304,15 +318,15 @@ export function BehavioralView({
     {
       id: "dir",
       header: "Direction",
-      accessor: (n) => n.direction,
-      render: (n) => <span className="badge badge-neutral badge-sm">{n.direction}</span>,
+      accessor: (n) => n.direction || "outbound",
+      render: (n) => <span className="badge badge-neutral badge-sm">{n.direction || "outbound"}</span>,
       width: "110px",
       align: "center",
     },
     {
       id: "time",
       header: "Offset",
-      accessor: (n) => `+${n.timestamp_ms}ms`,
+      accessor: (n) => `+${n.timestamp_ms || 0}ms`,
       width: "100px",
       align: "right",
     },
@@ -328,17 +342,17 @@ export function BehavioralView({
     {
       id: "size",
       header: "Size",
-      accessor: (f) => `${(f.size_bytes / 1024).toFixed(1)} KB`,
+      accessor: (f) => (f.size_bytes != null ? `${(f.size_bytes / 1024).toFixed(1)} KB` : "—"),
       width: "120px",
     },
     {
       id: "hash",
       header: "SHA-256 Hash",
-      accessor: (f) => f.sha256,
+      accessor: (f) => f.sha256 || "—",
       render: (f) => (
         <div className="hash-copy-cell">
-          <code>{f.sha256.slice(0, 16)}…{f.sha256.slice(-8)}</code>
-          <CopyButton text={f.sha256} label="Dropped SHA-256" />
+          <code>{f.sha256 ? `${f.sha256.slice(0, 16)}…${f.sha256.slice(-8)}` : "—"}</code>
+          {f.sha256 && <CopyButton text={f.sha256} label="Dropped SHA-256" />}
         </div>
       ),
       width: "220px",
@@ -346,7 +360,7 @@ export function BehavioralView({
     {
       id: "time",
       header: "Offset",
-      accessor: (f) => `+${f.timestamp_ms}ms`,
+      accessor: (f) => `+${f.timestamp_ms || 0}ms`,
       width: "100px",
       align: "right",
     },
@@ -362,7 +376,12 @@ export function BehavioralView({
           </p>
         </div>
         <div className="provenance-badge-box">
-          <span className="badge badge-category">PROVENANCE: {behavior.provenance.toUpperCase()}</span>
+          <span className="badge badge-category">PROVENANCE: {provenance.toUpperCase()}</span>
+          {behavior.sandbox_metadata?.os_platform && (
+            <span className="badge badge-neutral badge-sm" style={{ marginLeft: "8px" }}>
+              {behavior.sandbox_metadata.os_platform}
+            </span>
+          )}
         </div>
       </div>
 
@@ -370,19 +389,19 @@ export function BehavioralView({
       <div className="kpi-grid">
         <div className="kpi-card">
           <span className="kpi-label">Processes Spawned</span>
-          <strong className="kpi-value">{behavior.processes.length}</strong>
+          <strong className="kpi-value">{(behavior.processes || []).length}</strong>
         </div>
         <div className="kpi-card">
           <span className="kpi-label">Registry Mutations</span>
-          <strong className="kpi-value">{behavior.registry_events.length}</strong>
+          <strong className="kpi-value">{(behavior.registry_events || []).length}</strong>
         </div>
         <div className="kpi-card">
           <span className="kpi-label">Network Sockets</span>
-          <strong className="kpi-value">{behavior.network_events.length}</strong>
+          <strong className="kpi-value">{(behavior.network_events || []).length}</strong>
         </div>
         <div className="kpi-card">
           <span className="kpi-label">Dropped Artifacts</span>
-          <strong className="kpi-value">{behavior.dropped_files.length}</strong>
+          <strong className="kpi-value">{(behavior.dropped_files || []).length}</strong>
         </div>
       </div>
 
@@ -395,7 +414,7 @@ export function BehavioralView({
           className={`subtab-btn ${activeTab === "processes" ? "active" : ""}`}
           onClick={() => setActiveTab("processes")}
         >
-          Process Tree ({behavior.processes.length})
+          Process Tree ({(behavior.processes || []).length})
         </button>
         <button
           type="button"
@@ -404,7 +423,7 @@ export function BehavioralView({
           className={`subtab-btn ${activeTab === "registry" ? "active" : ""}`}
           onClick={() => setActiveTab("registry")}
         >
-          Registry Activity ({behavior.registry_events.length})
+          Registry Activity ({(behavior.registry_events || []).length})
         </button>
         <button
           type="button"
@@ -413,7 +432,7 @@ export function BehavioralView({
           className={`subtab-btn ${activeTab === "network" ? "active" : ""}`}
           onClick={() => setActiveTab("network")}
         >
-          Network Activity ({behavior.network_events.length})
+          Network Activity ({(behavior.network_events || []).length})
         </button>
         <button
           type="button"
@@ -422,7 +441,7 @@ export function BehavioralView({
           className={`subtab-btn ${activeTab === "files" ? "active" : ""}`}
           onClick={() => setActiveTab("files")}
         >
-          Dropped Files ({behavior.dropped_files.length})
+          Dropped Files ({(behavior.dropped_files || []).length})
         </button>
         <button
           type="button"

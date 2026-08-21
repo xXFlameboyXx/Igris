@@ -38,7 +38,7 @@ export function EvidenceExplorerView({
   const [selectedItem, setSelectedItem] = useState<AssessmentEvidenceItem | null>(null);
 
   const assessment = sample?.malware_assessment;
-  const allItems = useMemo(() => assessment?.evidence_summary.evidence_items || [], [assessment]);
+  const allItems = useMemo(() => assessment?.evidence_summary?.evidence_items || [], [assessment]);
 
   // Filter evidence
   const filteredEvidence = useMemo(() => {
@@ -166,13 +166,13 @@ export function EvidenceExplorerView({
             Total: <strong>{allItems.length}</strong>
           </span>
           <span className="summary-pill supporting">
-            Supporting: <strong>{assessment.evidence_summary.supporting_count}</strong>
+            Supporting: <strong>{assessment.evidence_summary?.supporting_count ?? 0}</strong>
           </span>
           <span className="summary-pill contradicting">
-            Contradicting: <strong>{assessment.evidence_summary.contradicting_count}</strong>
+            Contradicting: <strong>{assessment.evidence_summary?.contradicting_count ?? 0}</strong>
           </span>
           <span className="summary-pill observed">
-            Observed: <strong>{assessment.evidence_summary.observed_count}</strong>
+            Observed: <strong>{assessment.evidence_summary?.observed_count ?? 0}</strong>
           </span>
         </div>
       </div>
@@ -332,11 +332,11 @@ export function EvidenceExplorerView({
             </div>
           )}
 
-          {selectedItem.limitations.length > 0 && (
+          {(selectedItem.limitations || []).length > 0 && (
             <div className="inspector-limitations">
               <h4>Specific Analytical Limitations</h4>
               <ul>
-                {selectedItem.limitations.map((lim, idx) => (
+                {(selectedItem.limitations || []).map((lim, idx) => (
                   <li key={idx}>🔒 {lim}</li>
                 ))}
               </ul>

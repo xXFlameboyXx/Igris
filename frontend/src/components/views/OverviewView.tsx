@@ -48,13 +48,13 @@ export function OverviewView({
 
   const assessment = sample.malware_assessment;
   const verdict = assessment?.verdict || (sample.status === "completed" ? "UNKNOWN" : "UNKNOWN");
-  const riskScore = assessment?.risk_score.score ?? 0;
+  const riskScore = assessment?.risk_score?.score ?? 0;
   const riskLevel = assessment?.risk_level || "UNKNOWN";
   const confidence = assessment?.confidence;
 
-  const supportingItems = assessment?.evidence_summary.evidence_items.filter((e) => e.role === "SUPPORTING") || [];
-  const contradictingItems = assessment?.evidence_summary.evidence_items.filter((e) => e.role === "CONTRADICTING") || [];
-  const disagreements = assessment?.evidence_summary.disagreements || [];
+  const supportingItems = (assessment?.evidence_summary?.evidence_items || []).filter((e) => e.role === "SUPPORTING");
+  const contradictingItems = (assessment?.evidence_summary?.evidence_items || []).filter((e) => e.role === "CONTRADICTING");
+  const disagreements = assessment?.evidence_summary?.disagreements || [];
 
   return (
     <div className="view-container overview-view" role="main" aria-label="Investigation Overview">
@@ -83,14 +83,14 @@ export function OverviewView({
                 />
               </div>
               <p className="score-formula-caption">
-                Formula: <code>{assessment?.risk_score.formula || "min(100, max(0, sum(positive) - 0.5 * sum(mitigating)))"}</code>
+                Formula: <code>{assessment?.risk_score?.formula || "min(100, max(0, sum(positive) - 0.5 * sum(mitigating)))"}</code>
                 {" "}(Deterministic evidence weight — <em>not a probability</em>)
               </p>
             </div>
           </div>
 
           <p id="assessment-summary-heading" className="assessment-narrative-summary">
-            {assessment?.explanation.summary || "Assessment unperformed or sample pending analysis. Run analysis layers below."}
+            {assessment?.explanation?.summary || "Assessment unperformed or sample pending analysis. Run analysis layers below."}
           </p>
         </div>
 
@@ -219,9 +219,9 @@ export function OverviewView({
               <p className="subdued-text">No behavioral capabilities mapped yet.</p>
             )}
 
-            {sample.threat_assessment?.attack_techniques && (
+            {(sample.threat_assessment?.attack_techniques || []).length > 0 && (
               <div className="technique-tags-row">
-                {sample.threat_assessment.attack_techniques.slice(0, 4).map((tech) => (
+                {(sample.threat_assessment?.attack_techniques || []).slice(0, 4).map((tech) => (
                   <span key={tech.technique_id} className="technique-tag" title={tech.technique_name}>
                     <strong>{tech.technique_id}</strong>: {tech.technique_name}
                   </span>

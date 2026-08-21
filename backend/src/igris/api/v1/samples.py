@@ -92,6 +92,20 @@ async def get_sample(request: Request, sample_id: str) -> SampleResponse:
     return service.get_sample(sample_id)
 
 
+@router.delete("/{sample_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_sample(request: Request, sample_id: str) -> Response:
+    """Delete a sample and all associated investigation history and stored binaries."""
+
+    service = _service_from_request(request)
+    service.delete_sample(sample_id)
+    if (
+        hasattr(request.app.state, "jobs_repository")
+        and request.app.state.jobs_repository is not None
+    ):
+        request.app.state.jobs_repository.delete_for_sample(sample_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
 @router.get("/{sample_id}/file-info", response_model=FileInfoResponse)
 async def get_sample_file_info(request: Request, sample_id: str) -> FileInfoResponse:
     """Return detailed normalized Phase 1 file intelligence."""

@@ -35,6 +35,10 @@ class AnalysisJobRepository(ABC):
     def list_all(self, limit: int = 100) -> list[AnalysisJob]:
         """Return all stored analysis jobs up to limit."""
 
+    @abstractmethod
+    def delete_for_sample(self, sample_id: str) -> int:
+        """Delete all analysis jobs associated with a specific sample. Return deleted count."""
+
 
 class InMemoryAnalysisJobRepository(AnalysisJobRepository):
     """In-memory repository for tests and lightweight executions."""
@@ -68,6 +72,13 @@ class InMemoryAnalysisJobRepository(AnalysisJobRepository):
             all_jobs = list(self._jobs.values())
             all_jobs.sort(key=lambda j: j.created_at, reverse=True)
             return all_jobs[:limit]
+
+    def delete_for_sample(self, sample_id: str) -> int:
+        with self._lock:
+            to_delete = [k for k, j in self._jobs.items() if j.sample_id == sample_id]
+            for k in to_delete:
+                del self._jobs[k]
+            return len(to_delete)
 
 
 class JsonAnalysisJobRepository(AnalysisJobRepository):
@@ -111,6 +122,23 @@ class JsonAnalysisJobRepository(AnalysisJobRepository):
             all_jobs = list(self._load().values())
             all_jobs.sort(key=lambda j: j.created_at, reverse=True)
             return all_jobs[:limit]
+
+    def delete_for_sample(self, sample_id: str) -> int:
+        with self._lock:
+            jobs = self._load()
+            to_delete = [k for k, j in jobs.items() if j.sample_id == sample_id]
+            for k in to_delete:
+                del jobs[k]
+            if to_delete:
+                self.path.write_text(
+                    json.dumps(
+                        {k: v.model_dump(mode="json") for k, v in jobs.items()},
+                        indent=2,
+                        sort_keys=True,
+                    ),
+                    encoding="utf-8",
+                )
+            return len(to_delete)
 
     def _load(self) -> dict[str, AnalysisJob]:
         if not self.path.exists():
