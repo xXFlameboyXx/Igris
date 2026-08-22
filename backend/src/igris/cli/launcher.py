@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import argparse
+import os
 import signal
 import subprocess
 import sys
 import webbrowser
 from pathlib import Path
 
+from igris.cli.banner import print_banner
 from igris.cli.discovery import (
     ensure_frontend_built,
     find_frontend_dist,
@@ -195,11 +197,14 @@ def launch_igris(
     if hasattr(signal, "SIGTERM"):
         signal.signal(signal.SIGTERM, cleanup_processes)
 
+    print_banner(target_url=url, version=f"v{get_app_version()}")
+
     print("Starting Igris...")
     print("Backend: starting...")
 
     backend_cwd = str(root)
     app_dir = str(root / "backend" / "src")
+    backend_env = {**os.environ, "IGRIS_LOG_LEVEL": "WARNING"}
     backend_cmd = [
         str(python_exe),
         "-m",
@@ -211,11 +216,15 @@ def launch_igris(
         str(port),
         "--app-dir",
         app_dir,
+        "--log-level",
+        "warning",
+        "--no-access-log",
     ]
 
     backend_proc = subprocess.Popen(  # noqa: S603
         backend_cmd,
         cwd=backend_cwd,
+        env=backend_env,
     )
     processes.append(backend_proc)
     write_pid_file(root, backend_proc.pid)

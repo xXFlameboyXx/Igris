@@ -18,6 +18,7 @@ export function BrandLogo({
   className = "",
 }: BrandLogoProps) {
   const [imageError, setImageError] = useState(false);
+  const [logoSrc] = useState(() => `${BRANDING.logoPath}?t=${Date.now()}`);
 
   const sizeClasses = {
     sm: "brand-logo-sm",
@@ -29,7 +30,7 @@ export function BrandLogo({
     <div className={`brand-logo-container ${sizeClasses[size]} ${className}`} aria-label={BRANDING.appName}>
       {!imageError ? (
         <img
-          src={BRANDING.logoPath}
+          src={logoSrc}
           alt={BRANDING.logoAlt}
           className="brand-logo-img"
           onError={() => setImageError(true)}

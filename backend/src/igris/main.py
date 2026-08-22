@@ -91,6 +91,21 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     break
 
         if dist_path.is_dir() and (dist_path / "index.html").is_file():
+            public_dir = dist_path.parent / "public"
+
+            @app.get("/assets/igris-logo.png", include_in_schema=False)
+            async def serve_custom_logo() -> FileResponse:
+                for candidate in [
+                    public_dir / "assets" / "igris-logo.png",
+                    dist_path / "assets" / "igris-logo.png",
+                ]:
+                    if candidate.is_file():
+                        return FileResponse(
+                            candidate,
+                            headers={"Cache-Control": "no-cache, no-store, must-revalidate"},
+                        )
+                raise StarletteHTTPException(status_code=404, detail="Logo not found")
+
             assets_dir = dist_path / "assets"
             if assets_dir.is_dir():
                 app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="frontend_assets")
