@@ -1,4 +1,5 @@
 import React from "react";
+import { BRANDING } from "../../config/branding";
 import type { InvestigationTab, Sample } from "../../types/api";
 
 interface SidebarProps {
@@ -128,7 +129,7 @@ export function Sidebar({ activeTab, onSelectTab, sample }: SidebarProps) {
       </ul>
 
       <div className="sidebar-footer-note">
-        <small>IGRIS v0.1.0 • Phase 12 Analyst Console</small>
+        <small>{BRANDING.appName} {BRANDING.version} • {BRANDING.releasePhase}</small>
       </div>
     </aside>
   );

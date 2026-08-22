@@ -1,5 +1,7 @@
 import React, { useState } from "react";
+import { BRANDING } from "../../config/branding";
 import type { HealthResponse, Sample } from "../../types/api";
+import { BrandLogo } from "../common/BrandLogo";
 import { CopyButton } from "../common/DataTable";
 import { Modal } from "../common/Modal";
 
@@ -73,12 +75,10 @@ export function Header({
     <header className="app-header" role="banner">
       <div className="header-brand-row">
         <div className="brand-lockup">
-          <div className="brand-logo" aria-hidden="true">
-            IG
-          </div>
-          <div>
-            <h1 className="brand-title">IGRIS</h1>
-            <p className="brand-tagline">Explainable Malware Assessment & Analyst Platform</p>
+          <BrandLogo size="md" />
+          <div className="brand-titles-wrapper">
+            <h1 className="brand-title">{BRANDING.appName}</h1>
+            <p className="brand-tagline">{BRANDING.tagline}</p>
           </div>
         </div>
 
