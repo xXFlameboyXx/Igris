@@ -1,4 +1,6 @@
-# Igris
+<img width="800" height="450" alt="dm9i677-d695ade6-68e6-45da-98c9-7ecdc0f50acb" src="https://github.com/user-attachments/assets/bc3ec933-92c1-48dc-8e3e-2bef00c130d3" />
+
+# IGRIS
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688.svg)](https://fastapi.tiangolo.com)
@@ -8,11 +10,11 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Security Status](https://img.shields.io/badge/Security-Hardened%20(Phase%2017)-brightgreen.svg)](docs/security/hardening.md)
 
-**Igris** (*Intelligent Graph-based Reverse-engineering and Inspection System*) is an explainable malware analysis and threat intelligence GUI application for inspecting and evaluating suspicious binary samples.
+**IGRIS** (*Intelligent Graph-based Reverse-engineering and Inspection System*) is an explainable malware analysis and threat intelligence GUI application for inspecting and evaluating suspicious binary samples.
 
 ---
 
-## What is Igris?
+## What is IGRIS?
 
 Igris is a local, web-based cybersecurity analysis platform designed for malware analysts, security engineers, and researchers. It provides a visual analyst interface for examining untrusted binaries across multiple independent analysis engines—combining static file intelligence, linear sweep disassembly, control flow graphs, heuristic detection, machine learning explainability, synthetic behavioral simulation, and MITRE ATT&CK mapping into transparent, evidence-backed verdicts.
 
