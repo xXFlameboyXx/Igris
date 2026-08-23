@@ -21,14 +21,92 @@ if (-not $PythonCmd) {
     Write-Error "Python 3.11+ is required but was not found on PATH. Please install Python from https://python.org."
 }
 
-# 2. Check Node & npm
-Write-Host "[3/5] Checking Node.js and npm..." -ForegroundColor Yellow
+# 2. Check Node & npm (Auto-install if missing)
+Write-Host "[3/5] Checking Node.js and npm environment..." -ForegroundColor Yellow
 $NpmCmd = Get-Command npm.cmd -ErrorAction SilentlyContinue
 if (-not $NpmCmd) {
     $NpmCmd = Get-Command npm -ErrorAction SilentlyContinue
 }
+
 if (-not $NpmCmd) {
-    Write-Error "Node.js (v18+) and npm are required for frontend building. Please install Node.js from https://nodejs.org."
+    Write-Host "Node.js and npm not detected. Attempting automatic installation..." -ForegroundColor Cyan
+
+    $Installed = $false
+
+    # Option A: Windows Package Manager (winget)
+    $WingetCmd = Get-Command winget -ErrorAction SilentlyContinue
+    if ($WingetCmd) {
+        Write-Host "Installing Node.js (LTS) using winget..." -ForegroundColor Gray
+        try {
+            & winget install --id OpenJS.NodeJS.LTS -e --silent --accept-package-agreements --accept-source-agreements
+            $Installed = $true
+        } catch {
+            Write-Host "winget installation encountered an issue, trying alternatives..." -ForegroundColor DarkYellow
+        }
+    }
+
+    # Option B: Chocolatey
+    if (-not $Installed) {
+        $ChocoCmd = Get-Command choco -ErrorAction SilentlyContinue
+        if ($ChocoCmd) {
+            Write-Host "Installing Node.js using Chocolatey..." -ForegroundColor Gray
+            try {
+                & choco install nodejs-lts -y
+                $Installed = $true
+            } catch {}
+        }
+    }
+
+    # Option C: Scoop
+    if (-not $Installed) {
+        $ScoopCmd = Get-Command scoop -ErrorAction SilentlyContinue
+        if ($ScoopCmd) {
+            Write-Host "Installing Node.js using Scoop..." -ForegroundColor Gray
+            try {
+                & scoop install nodejs-lts
+                $Installed = $true
+            } catch {}
+        }
+    }
+
+    # Option D: Direct Official MSI Silent Installer Fallback
+    if (-not $Installed) {
+        Write-Host "Downloading and installing official Node.js LTS MSI package..." -ForegroundColor Gray
+        $MsiUrl = "https://nodejs.org/dist/v20.17.0/node-v20.17.0-x64.msi"
+        $TempMsi = Join-Path $env:TEMP "nodejs-installer.msi"
+        try {
+            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+            Invoke-WebRequest -Uri $MsiUrl -OutFile $TempMsi -UseBasicParsing
+            $Process = Start-Process msiexec.exe -ArgumentList "/i `"$TempMsi`" /qn /norestart" -Wait -PassThru
+            if ($Process.ExitCode -eq 0) {
+                $Installed = $true
+            }
+            Remove-Item -Path $TempMsi -Force -ErrorAction SilentlyContinue
+        } catch {
+            Write-Host "Direct MSI installation failed: $_" -ForegroundColor DarkYellow
+        }
+    }
+
+    # Refresh Environment PATH from Registry
+    $MachinePath = [Environment]::GetEnvironmentVariable("Path", "Machine")
+    $UserPath = [Environment]::GetEnvironmentVariable("Path", "User")
+    $DefaultNodeDir = Join-Path $env:ProgramFiles "nodejs"
+    $env:Path = "$MachinePath;$UserPath;$DefaultNodeDir;$env:Path"
+
+    $NpmCmd = Get-Command npm.cmd -ErrorAction SilentlyContinue
+    if (-not $NpmCmd) {
+        $NpmCmd = Get-Command npm -ErrorAction SilentlyContinue
+    }
+
+    if (-not $NpmCmd -and (Test-Path (Join-Path $DefaultNodeDir "npm.cmd"))) {
+        $NpmCmd = Get-Command (Join-Path $DefaultNodeDir "npm.cmd") -ErrorAction SilentlyContinue
+    }
+
+    if ($NpmCmd) {
+        Write-Host "Node.js and npm installed successfully!" -ForegroundColor Green
+    } else {
+        Write-Error "Could not automatically install Node.js. Please install Node.js (v18+) manually from https://nodejs.org and re-run install.ps1."
+    }
 }
 
 # 3. Setup Python Virtual Environment and Backend Dependencies

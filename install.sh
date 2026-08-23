@@ -17,11 +17,74 @@ if ! command -v python3 >/dev/null 2>&1; then
     exit 1
 fi
 
-# 2. Check Node & npm
-echo "[3/5] Checking Node.js and npm..."
-if ! command -v npm >/dev/null 2>&1; then
-    echo "Error: Node.js and npm are required. Please install Node.js." >&2
-    exit 1
+# 2. Check Node & npm (Auto-install if missing)
+echo "[3/5] Checking Node.js and npm environment..."
+if ! command -v npm >/dev/null 2>&1 || ! command -v node >/dev/null 2>&1; then
+    echo "Node.js and npm not detected. Attempting automatic installation..."
+    
+    OS_TYPE="$(uname -s)"
+    if [ "$OS_TYPE" = "Linux" ]; then
+        if command -v apt-get >/dev/null 2>&1; then
+            echo "Installing Node.js & npm via apt..."
+            if [ "$(id -u)" -eq 0 ]; then
+                apt-get update && apt-get install -y nodejs npm
+            elif command -v sudo >/dev/null 2>&1; then
+                sudo apt-get update && sudo apt-get install -y nodejs npm
+            else
+                echo "Error: sudo required to install nodejs with apt." >&2
+                exit 1
+            fi
+        elif command -v dnf >/dev/null 2>&1; then
+            echo "Installing Node.js & npm via dnf..."
+            if [ "$(id -u)" -eq 0 ]; then
+                dnf install -y nodejs npm
+            elif command -v sudo >/dev/null 2>&1; then
+                sudo dnf install -y nodejs npm
+            fi
+        elif command -v yum >/dev/null 2>&1; then
+            echo "Installing Node.js & npm via yum..."
+            if [ "$(id -u)" -eq 0 ]; then
+                yum install -y nodejs npm
+            elif command -v sudo >/dev/null 2>&1; then
+                sudo yum install -y nodejs npm
+            fi
+        elif command -v pacman >/dev/null 2>&1; then
+            echo "Installing Node.js & npm via pacman..."
+            if [ "$(id -u)" -eq 0 ]; then
+                pacman -Sy --noconfirm nodejs npm
+            elif command -v sudo >/dev/null 2>&1; then
+                sudo pacman -Sy --noconfirm nodejs npm
+            fi
+        elif command -v apk >/dev/null 2>&1; then
+            echo "Installing Node.js & npm via apk..."
+            if [ "$(id -u)" -eq 0 ]; then
+                apk add --no-cache nodejs npm
+            elif command -v sudo >/dev/null 2>&1; then
+                sudo apk add --no-cache nodejs npm
+            fi
+        else
+            echo "Error: Unsupported Linux package manager. Please install Node.js manually." >&2
+            exit 1
+        fi
+    elif [ "$OS_TYPE" = "Darwin" ]; then
+        if command -v brew >/dev/null 2>&1; then
+            echo "Installing Node.js via Homebrew..."
+            brew install node
+        else
+            echo "Error: Homebrew is required to auto-install Node.js on macOS. Please install Homebrew or Node.js from https://nodejs.org." >&2
+            exit 1
+        fi
+    else
+        echo "Error: Unsupported operating system ($OS_TYPE). Please install Node.js manually." >&2
+        exit 1
+    fi
+
+    # Verify installation
+    if ! command -v npm >/dev/null 2>&1; then
+        echo "Error: Node.js / npm installation failed. Please install Node.js manually from https://nodejs.org." >&2
+        exit 1
+    fi
+    echo "Node.js and npm installed successfully!"
 fi
 
 # 3. Setup Python Virtual Environment and Backend Dependencies

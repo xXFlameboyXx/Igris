@@ -76,6 +76,10 @@ def ensure_frontend_built(root: Path | None = None, auto_build: bool = True) -> 
         return False
 
     npm_bin = shutil.which("npm") or shutil.which("npm.cmd")
+    if not npm_bin and sys.platform == "win32":
+        candidate = Path(os.environ.get("ProgramFiles", r"C:\Program Files")) / "nodejs" / "npm.cmd"
+        if candidate.is_file():
+            npm_bin = str(candidate)
     if not npm_bin:
         return False
 

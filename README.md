@@ -40,7 +40,7 @@ Igris is a local, web-based cybersecurity analysis platform designed for malware
 
 ### Prerequisites
 - **Python:** 3.11 or newer ([python.org](https://python.org))
-- **Node.js:** 18 or newer with `npm` ([nodejs.org](https://nodejs.org))
+- **Node.js:** 18+ *(optional to pre-install; the automated installer will automatically install Node.js & npm if not detected)*
 - **Git:** ([git-scm.com](https://git-scm.com))
 
 ### 1. Clone the Repository
@@ -61,7 +61,7 @@ cd Igris
 chmod +x install.sh && ./install.sh
 ```
 
-The installer configures the Python virtual environment, compiles the frontend bundle, and registers the global `igris` command on your user `PATH`.
+The installer automatically ensures Node.js & npm are present, configures the Python virtual environment, compiles the frontend bundle, and registers the global `igris` command on your user `PATH`.
 
 ---
 
