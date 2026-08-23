@@ -117,9 +117,9 @@ IGRIS safely ingests, unpacks, disassembles, and evaluates a wide variety of bin
 
 ---
 
-# More formats like androids apps(.apk , .aab , .dex) , apple/MacOS Binaries(.dylib , macOS apps) , iOS Packages(.ipa) , Documents(.docm , .xlsm , .pdf) and archives (.zip, .rar, .7z, .iso, .vhd) COMING SOON !! 
+More formats like androids apps(.apk , .aab , .dex) , apple/MacOS Binaries(.dylib , macOS apps) , iOS Packages(.ipa) , Documents(.docm , .xlsm , .pdf) and archives (.zip, .rar, .7z, .iso, .vhd) COMING SOON !! 
  
- 
+
 ## 🛠️ Installation
 
 ### Prerequisites
