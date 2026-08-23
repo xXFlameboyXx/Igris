@@ -112,10 +112,14 @@ IGRIS safely ingests, unpacks, disassembles, and evaluates a wide variety of bin
 | **Windows Binaries** | `.exe`, `.dll`, `.sys`, `.scr`, `.ocx`, `.cpl` | `x86` (32-bit PE32)<br>`x86-64` (64-bit PE32+) | DOS/PE headers, section entropy, Import Address Table (IAT) capability taxonomy, Export table, overlays, digital certificate parsing. |
 | **Linux Binaries** | Executables, `.so` shared objects, `.o` object files | `ELF32`, `ELF64`<br>(`x86`, `x86_64`, `ARM`, `MIPS`) | ELF header validation, segment/program headers, section mappings, symbol tables, dynamic shared library links. |
 | **Raw Shellcode & Payloads** | `.bin`, `.raw`, `.dat`, `.dmp`, memory blobs | `x86`, `x86-64` | Linear sweep disassembly via Capstone, basic block recovery, interactive Control Flow Graphs (CFG), opcode entropy. |
+| **Scripts & Source Code** | `.py`, `.ps1`, `.sh`, `.bat`, `.js`, `.vbs`, `.c`, `.c#`, `.java`, `.cpp`, `.php` | Interpreted / Source Code | Static IOC extraction, hardcoded C2 URLs/IPs, Base64/obfuscated block entropy detection, SSDEEP & TLSH similarity clustering, dossier export. |
 | **Generic & Unknown Specimens** | Any binary blob or suspicious file | Architecture-Agnostic | SHA-256 / MD5 / SHA-1 hashes, Shannon entropy visualization, categorized ASCII & UTF-16 string extraction (URLs, IPs, Onion links, Registry paths), SSDEEP & TLSH fuzzy clustering. |
 
 ---
 
+# More formats like androids apps(.apk , .aab , .dex) , apple/MacOS Binaries(.dylib , macOS apps) , iOS Packages(.ipa) , Documents(.docm , .xlsm , .pdf) and archives (.zip, .rar, .7z, .iso, .vhd) COMING SOON !! 
+ 
+ 
 ## 🛠️ Installation
 
 ### Prerequisites
