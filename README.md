@@ -41,7 +41,7 @@
 
 <br>
 
-<p allign="center">
+<p align="center">
 <!-- ========================================== -->
 <!--          CLI BANNER PLACEHOLDER            -->
 <!--  (Paste your CLI Banner screenshot or      -->
