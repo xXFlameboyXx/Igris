@@ -8,7 +8,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178C6.svg)](https://www.typescriptlang.org)
 [![Tests](https://img.shields.io/badge/tests-158%20passed-brightgreen.svg)](tests/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Security Status](https://img.shields.io/badge/Security-Hardened%20(Phase%2017)-brightgreen.svg)](docs/security/hardening.md)
+[![Security Status](https://img.shields.io/badge/Security-Hardened-brightgreen.svg)](SECURITY.md)
 
 **IGRIS** (*Intelligent Graph-based Reverse-engineering and Inspection System*) is an explainable malware analysis and threat intelligence GUI application for inspecting and evaluating suspicious binary samples.
 

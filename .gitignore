@@ -14,6 +14,11 @@ build/
 .venv/
 .uv-cache/
 data/
+tmp/
+*.pid
+
+# Internal notes
+docs/AI_HANDOFF.md
 
 # Frontend
 frontend/node_modules/

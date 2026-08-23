@@ -75,11 +75,6 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Do not open the web browser automatically upon server startup.",
     )
-    parser.add_argument(
-        "--dev",
-        action="store_true",
-        help="Start in development mode with active Vite dev server.",
-    )
     return parser
 
 
@@ -144,7 +139,6 @@ def launch_igris(
     host: str,
     port: int,
     no_browser: bool,
-    dev_mode: bool,
     root: Path,
     python_exe: Path,
 ) -> int:
@@ -165,16 +159,15 @@ def launch_igris(
             )
             return 1
 
-    if not dev_mode:
-        dist_dir = find_frontend_dist(root)
-        if not dist_dir:
-            print("Frontend production bundle not found. Building...")
-            if not ensure_frontend_built(root, auto_build=True):
-                print(
-                    "Error: Could not find or build frontend production bundle.\n"
-                    "Run 'igris --repair' or 'npm run build' inside the frontend/ directory."
-                )
-                return 1
+    dist_dir = find_frontend_dist(root)
+    if not dist_dir:
+        print("Frontend production bundle not found. Building...")
+        if not ensure_frontend_built(root, auto_build=True):
+            print(
+                "Error: Could not find or build frontend production bundle.\n"
+                "Run 'igris --repair' or 'npm run build' inside the frontend/ directory."
+            )
+            return 1
 
     processes: list[subprocess.Popen[bytes]] = []
 
@@ -229,15 +222,6 @@ def launch_igris(
     processes.append(backend_proc)
     write_pid_file(root, backend_proc.pid)
 
-    if dev_mode:
-        print("Frontend (dev): starting Vite...")
-        npm_bin = "npm.cmd" if sys.platform == "win32" else "npm"
-        frontend_proc = subprocess.Popen(  # noqa: S603
-            [npm_bin, "run", "dev"],
-            cwd=str(root / "frontend"),
-        )
-        processes.append(frontend_proc)
-
     ready = wait_for_health(host, port, timeout=25.0)
     if not ready:
         print(f"Error: Igris backend failed to start on {url} within timeout.")
@@ -247,11 +231,9 @@ def launch_igris(
     print(f"Backend: ready ({url})")
     print("Frontend: ready")
 
-    target_open_url = "http://127.0.0.1:5173" if dev_mode else url
-
     if not no_browser:
-        print(f"Opening Igris in your browser: {target_open_url}")
-        webbrowser.open(target_open_url)
+        print(f"Opening Igris in your browser: {url}")
+        webbrowser.open(url)
 
     print("\nIgris is running. Press Ctrl+C to stop.")
 
@@ -288,7 +270,6 @@ def main(args: list[str] | None = None) -> int:
         host=parsed.host,
         port=parsed.port,
         no_browser=parsed.no_browser,
-        dev_mode=parsed.dev,
         root=root,
         python_exe=python_exe,
     )

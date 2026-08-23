@@ -48,7 +48,6 @@ def test_help_parser() -> None:
     assert "--port" in help_text
     assert "--host" in help_text
     assert "--no-browser" in help_text
-    assert "--dev" in help_text
 
 
 def test_discovery_root_and_python() -> None:
@@ -135,7 +134,6 @@ def test_already_running_opens_browser_and_exits(tmp_path: Path) -> None:
                         host="127.0.0.1",
                         port=8000,
                         no_browser=False,
-                        dev_mode=False,
                         root=tmp_path,
                         python_exe=Path("python"),
                     )
@@ -154,7 +152,6 @@ def test_port_conflict_reports_actionable_error(tmp_path: Path) -> None:
                     host="127.0.0.1",
                     port=8000,
                     no_browser=False,
-                    dev_mode=False,
                     root=tmp_path,
                     python_exe=Path("python"),
                 )
