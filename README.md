@@ -42,13 +42,7 @@
 <br>
 
 <p align="center">
-<!-- ========================================== -->
-<!--          CLI BANNER PLACEHOLDER            -->
-<!--  (Paste your CLI Banner screenshot or      -->
-<!--   terminal ASCII block below)              -->
-<!-- ========================================== -->
-
-![alt text](frontend/public/assets/igrisCLIgit.png)
+  <img src="frontend/public/assets/igrisCLIgit.png" alt="IGRIS CLI Banner" width="720" />
 </p>
 
 <br>
