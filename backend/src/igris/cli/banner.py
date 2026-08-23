@@ -52,21 +52,17 @@ def build_igris_banner(
         justify="center",
     )
 
-    # Links & metadata line (clickable hyperlinks)
-    github_display = github_url.replace("https://", "")
-    discord_display = discord_url.replace("https://", "")
-
+    # Links & metadata line (clickable hyperlinks across Windows and Linux)
     links_text = Text(justify="center")
     links_text.append(
-        github_display,
+        github_url,
         style=Style(color="bright_red", underline=True, link=github_url),
     )
     links_text.append("  •  ", style="dim red")
     links_text.append(
-        discord_display,
+        discord_url,
         style=Style(color="bright_red", underline=True, link=discord_url),
     )
-    links_text.append("     ", style="dim red")
     links_text.append(f"\n{version}", style="dim white")
 
     # Target indicator (clickable hyperlink)
