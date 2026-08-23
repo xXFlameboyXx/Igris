@@ -47,36 +47,7 @@
 <!--   terminal ASCII block below)              -->
 <!-- ========================================== -->
 
-```text
-┌──────────────────────────  IGRIS CYBER FORENSICS  ──────────────────────────┐
-│                                                                             │
-│                       ██╗ ██████╗ ██████╗ ██╗███████╗                       │
-│                       ██║██╔════╝ ██╔══██╗██║██╔════╝                       │
-│                       ██║██║  ███╗██████╔╝██║███████╗                       │
-│                       ██║██║   ██║██╔══██╗██║╚════██║                       │
-│                       ██║╚██████╔╝██║  ██║██║███████║                       │
-│                       ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═╝╚══════╝                       │
-│                                                                             │
-│       Intelligent Graph-based Reverse-engineering & Inspection System       │
-│                                                                             │
-│          github.com/xXFlameboyXx/Igris  •  discord.gg/Gg2rjRx8yF            │
-│                                   v0.1.0                                    │
-│                                                                             │
-│                      ► Web GUI: http://127.0.0.1:8000                       │
-│                                                                             │
-│                           ── Analysis Workflow ──                           │
-│                                                                             │
-│   1.  File Intel     PE/ELF headers, section entropy, string taxonomy,      │
-│                      overlay                                                │
-│   2.  Disassembly    Linear sweep, Capstone x86/x64, basic block recovery   │
-│                      & CFG                                                  │
-│   3.  Sandbox        Synthetic behavior simulation, process tree,           │
-│                      registry IOCs                                          │
-│   4.  ATT&CK Matrix  MITRE technique mapping, epistemological risk          │
-│                      scoring                                                │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+![alt text](frontend/public/assets/igrisCLIgit.png)
 
 <br>
 
