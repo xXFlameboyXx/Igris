@@ -4,8 +4,8 @@ version = "0.1.0"
 description = "Intelligent Graph-based Reverse-engineering and Inspection System foundation."
 readme = "README.md"
 requires-python = ">=3.11"
-license = { text = "MIT" }
-authors = [{ name = "Igris contributors" }]
+license = { text = "Proprietary" }
+authors = [{ name = "xXFlameboyXx" }]
 dependencies = [
     "capstone>=5.0.0,<6.0.0",
     "fastapi>=0.115.0,<1.0.0",

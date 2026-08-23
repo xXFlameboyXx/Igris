@@ -24,7 +24,7 @@
 </p>
 
 <p align="center">
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-All_Rights_Reserved-red.svg" alt="License: All Rights Reserved" /></a>
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/Python-3.11+-3776AB.svg?logo=python&logoColor=white" alt="Python 3.11+" /></a>
   <a href="https://fastapi.tiangolo.com"><img src="https://img.shields.io/badge/FastAPI-0.115+-009688.svg?logo=fastapi&logoColor=white" alt="FastAPI" /></a>
   <a href="https://react.dev"><img src="https://img.shields.io/badge/React-19-61DAFB.svg?logo=react&logoColor=black" alt="React 19" /></a>
@@ -189,6 +189,16 @@ Contributions, issues, and feature requests are welcome!
 
 ---
 
-## 📜 License
+## 📜 License & Copyright
 
-Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for more information.
+Copyright © 2026 **xXFlameboyXx**. All rights reserved.
+
+IGRIS is a proprietary, source-available project. It is provided strictly for personal evaluation, educational inspection, and authorized security research. Unauthorized copying, distribution, modification, rebranding, commercialization, or hosting as a public service is strictly prohibited without prior written consent.
+
+See the full terms in [`LICENSE`](LICENSE).
+
+---
+
+<p align="center">
+  <sub>IGRIS™ and the IGRIS logo are trademarks of xXFlameboyXx.</sub>
+</p>

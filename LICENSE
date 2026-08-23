@@ -1,22 +1,51 @@
-MIT License
+IGRIS SOURCE-AVAILABLE & PROPRIETARY LICENSE
+Copyright (c) 2026 xXFlameboyXx. All rights reserved.
 
-Copyright (c) 2026 Igris contributors
+================================================================================
+TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+================================================================================
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+1. OWNERSHIP & COPYRIGHT NOTICE
+   The IGRIS software, including but not limited to all source code, algorithms, 
+   architecture, design tokens, graphics, logos, user interfaces, documentation, 
+   and associated materials (collectively, the "Software"), is the proprietary 
+   intellectual property of xXFlameboyXx ("Author"). The Software is protected 
+   by international copyright laws, treaties, and trade secret laws.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+2. GRANT OF LIMITED EVALUATION & RESEARCH LICENSE
+   Permission is hereby granted, free of charge, to any person obtaining a copy 
+   of the Software, strictly for the following purposes:
+     a) Personal non-commercial evaluation;
+     b) Academic study, security research, and personal educational inspection;
+     c) Running the Software locally on your personal machine in an isolated 
+        security analysis environment.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+3. PROHIBITED USES (STRICTLY FORBIDDEN WITHOUT PRIOR WRITTEN CONSENT)
+   Unless explicitly authorized in writing by the Author, you MAY NOT:
+     a) Copy, distribute, publish, sublicense, rent, lease, or transfer the 
+        Software or any derivative work thereof to any third party;
+     b) Sell, monetize, or use the Software or any portion thereof for commercial 
+        purposes or as part of a paid product, enterprise deployment, or security service;
+     c) Host the Software as a public web service, Software-as-a-Service (SaaS), 
+        managed service, or cloud offering;
+     d) Rebrand, rename, or claim authorship or copyright over the Software or 
+        any component thereof;
+     e) Remove, obscure, or alter any copyright notices, trademarks, logos, or 
+        author attributions present within the Software.
 
+4. TRADEMARK & BRANDING NOTICE
+   "IGRIS", the IGRIS logo, and associated visual branding are trademarks of the 
+   Author. No trademark or brand license is granted under this Agreement.
+
+5. DISCLAIMER OF WARRANTY & LIMITATION OF LIABILITY
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+   FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
+   AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN 
+   ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION 
+   WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+================================================================================
+For commercial licensing, enterprise inquiries, or permission requests, please 
+contact the Author via GitHub: https://github.com/xXFlameboyXx/Igris
+================================================================================
