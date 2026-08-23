@@ -41,6 +41,7 @@
 
 <br>
 
+<p allign="center">
 <!-- ========================================== -->
 <!--          CLI BANNER PLACEHOLDER            -->
 <!--  (Paste your CLI Banner screenshot or      -->
@@ -48,6 +49,7 @@
 <!-- ========================================== -->
 
 ![alt text](frontend/public/assets/igrisCLIgit.png)
+</p>
 
 <br>
 
