@@ -17,6 +17,7 @@
 <p align="center">
   <a href="#-quick-start">Quick Start</a> •
   <a href="#-features">Features</a> •
+  <a href="#-supported-file-formats--architectures">Supported Formats</a> •
   <a href="#-installation">Installation</a> •
   <a href="#-cli-commands">Commands</a> •
   <a href="#-analysis-pipeline">Analysis Pipeline</a> •
@@ -102,6 +103,19 @@ Your default browser will immediately open `http://127.0.0.1:8000` with the comp
 
 ---
 
+## 📦 Supported File Formats & Architectures
+
+IGRIS safely ingests, unpacks, disassembles, and evaluates a wide variety of binary formats:
+
+| Category | File Types & Extensions | Target Architectures | Capabilities & Inspections |
+| :--- | :--- | :--- | :--- |
+| **Windows Binaries** | `.exe`, `.dll`, `.sys`, `.scr`, `.ocx`, `.cpl` | `x86` (32-bit PE32)<br>`x86-64` (64-bit PE32+) | DOS/PE headers, section entropy, Import Address Table (IAT) capability taxonomy, Export table, overlays, digital certificate parsing. |
+| **Linux Binaries** | Executables, `.so` shared objects, `.o` object files | `ELF32`, `ELF64`<br>(`x86`, `x86_64`, `ARM`, `MIPS`) | ELF header validation, segment/program headers, section mappings, symbol tables, dynamic shared library links. |
+| **Raw Shellcode & Payloads** | `.bin`, `.raw`, `.dat`, `.dmp`, memory blobs | `x86`, `x86-64` | Linear sweep disassembly via Capstone, basic block recovery, interactive Control Flow Graphs (CFG), opcode entropy. |
+| **Generic & Unknown Specimens** | Any binary blob or suspicious file | Architecture-Agnostic | SHA-256 / MD5 / SHA-1 hashes, Shannon entropy visualization, categorized ASCII & UTF-16 string extraction (URLs, IPs, Onion links, Registry paths), SSDEEP & TLSH fuzzy clustering. |
+
+---
+
 ## 🛠️ Installation
 
 ### Prerequisites
@@ -136,6 +150,7 @@ chmod +x install.sh && ./install.sh
 | Command | Description |
 | :--- | :--- |
 | `igris` | Launch the Igris server and open the Web GUI in your browser. |
+| `igris --update` | Pull latest updates from GitHub, update dependencies, and rebuild frontend. |
 | `igris --status` | Check if an Igris server instance is currently running. |
 | `igris --stop` | Stop any active Igris background server. |
 | `igris --repair` | Rebuild frontend assets and verify system dependencies. |

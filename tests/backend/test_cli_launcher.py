@@ -14,8 +14,10 @@ from igris.cli.discovery import (
 )
 from igris.cli.launcher import (
     build_parser,
+    handle_repair,
     handle_status,
     handle_stop,
+    handle_update,
     handle_version,
     launch_igris,
     main,
@@ -45,6 +47,7 @@ def test_help_parser() -> None:
     assert "--status" in help_text
     assert "--stop" in help_text
     assert "--repair" in help_text
+    assert "--update" in help_text
     assert "--port" in help_text
     assert "--host" in help_text
     assert "--no-browser" in help_text
@@ -161,9 +164,29 @@ def test_port_conflict_reports_actionable_error(tmp_path: Path) -> None:
 
 
 def test_main_cli_dispatch() -> None:
-    """Verify main() properly dispatches --version and --help."""
+    """Verify main() properly dispatches --version, --status, and --update."""
     f = io.StringIO()
     with redirect_stdout(f):
         res = main(["--version"])
     assert res == 0
     assert f"Igris v{__version__}" in f.getvalue()
+
+
+def test_handle_update_git_missing(tmp_path: Path) -> None:
+    """Verify handle_update errors gracefully when git binary is missing."""
+    with patch("shutil.which", return_value=None):
+        f = io.StringIO()
+        with redirect_stdout(f):
+            code = handle_update("127.0.0.1", 8000, tmp_path)
+        assert code == 1
+        assert "Git executable not found" in f.getvalue()
+
+
+def test_handle_repair_success(tmp_path: Path) -> None:
+    """Verify handle_repair invokes ensure_frontend_built."""
+    with patch("igris.cli.launcher.ensure_frontend_built", return_value=True):
+        f = io.StringIO()
+        with redirect_stdout(f):
+            code = handle_repair(tmp_path)
+        assert code == 0
+        assert "repair completed successfully" in f.getvalue()

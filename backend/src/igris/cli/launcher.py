@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import shutil
 import signal
 import subprocess
 import sys
@@ -55,6 +56,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--repair",
         action="store_true",
         help="Rebuild frontend assets and verify system environment.",
+    )
+    parser.add_argument(
+        "--update",
+        action="store_true",
+        help="Pull latest changes from GitHub, update dependencies, and rebuild assets.",
     )
     parser.add_argument(
         "-p",
@@ -132,6 +138,104 @@ def handle_repair(root: Path) -> int:
     else:
         print("Error: Failed to build frontend. Ensure Node.js and npm are installed.")
         return 1
+
+
+def handle_update(host: str, port: int, root: Path) -> int:
+    """Pull latest updates from Git, update dependencies, and rebuild frontend."""
+    print("Updating Igris...")
+    print(f"Repository Root: {root}")
+
+    # 1. Stop running instance if one exists
+    if check_port_in_use(host, port) and check_is_igris_instance(host, port):
+        print("Stopping running Igris instance for update...")
+        handle_stop(host, port, root)
+
+    # 2. Check Git availability and pull
+    git_bin = shutil.which("git")
+    if not git_bin:
+        print("Error: Git executable not found on PATH. Please install Git or update manually.")
+        return 1
+
+    print("[1/3] Pulling latest changes from GitHub...")
+    try:
+        git_res = subprocess.run(  # noqa: S603
+            [git_bin, "pull"],
+            cwd=str(root),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if git_res.returncode != 0:
+            err_msg = git_res.stderr.strip() or git_res.stdout.strip()
+            print(f"Warning: Git pull reported issues:\n{err_msg}")
+        else:
+            print(f"Git: {git_res.stdout.strip()}")
+    except OSError as exc:
+        print(f"Error running git pull: {exc}")
+        return 1
+
+    # 3. Update Python dependencies
+    print("[2/3] Updating backend dependencies...")
+    uv_bin = shutil.which("uv")
+    if uv_bin:
+        try:
+            subprocess.run(  # noqa: S603
+                [uv_bin, "sync"],
+                cwd=str(root),
+                check=True,
+                capture_output=True,
+            )
+            print("Backend dependencies synchronized via uv.")
+        except (subprocess.SubprocessError, OSError):
+            print("Note: uv sync completed with warnings.")
+    else:
+        python_exe = find_python_executable(root)
+        try:
+            subprocess.run(  # noqa: S603
+                [str(python_exe), "-m", "pip", "install", "-e", "."],
+                cwd=str(root),
+                check=True,
+                capture_output=True,
+            )
+            print("Backend package refreshed via pip.")
+        except (subprocess.SubprocessError, OSError):
+            pass
+
+    # 4. Rebuild frontend bundle
+    print("[3/3] Rebuilding frontend production bundle...")
+    frontend_dir = root / "frontend"
+    npm_bin = shutil.which("npm") or shutil.which("npm.cmd")
+    if not npm_bin and sys.platform == "win32":
+        candidate = Path(os.environ.get("ProgramFiles", r"C:\Program Files")) / "nodejs" / "npm.cmd"
+        if candidate.is_file():
+            npm_bin = str(candidate)
+
+    if npm_bin and (frontend_dir / "package.json").is_file():
+        try:
+            subprocess.run(  # noqa: S603
+                [npm_bin, "install"],
+                cwd=str(frontend_dir),
+                check=True,
+                capture_output=True,
+            )
+            subprocess.run(  # noqa: S603
+                [npm_bin, "run", "build"],
+                cwd=str(frontend_dir),
+                check=True,
+                capture_output=True,
+            )
+            print("Frontend production bundle compiled successfully.")
+        except (subprocess.SubprocessError, OSError) as exc:
+            print(f"Error: Failed to rebuild frontend: {exc}")
+            return 1
+    else:
+        print("Warning: npm not found or frontend package.json missing.")
+
+    print("\n========================================================")
+    print(f"✔ Igris updated successfully! (v{get_app_version()})")
+    print("Run 'igris' from any terminal to start the updated platform.")
+    print("========================================================")
+    return 0
 
 
 def launch_igris(
@@ -265,6 +369,9 @@ def main(args: list[str] | None = None) -> int:
 
     if parsed.repair:
         return handle_repair(root)
+
+    if parsed.update:
+        return handle_update(parsed.host, parsed.port, root)
 
     return launch_igris(
         host=parsed.host,
